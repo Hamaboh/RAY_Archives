@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="アイドルグループRAYの活動記録アーカイブ" />
+    <title>RAY Archives</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="RAY Archives ホーム">RAY<span>ARCHIVES</span></a>
+      <nav id="global-nav" aria-label="アーカイブの区分"></nav>
+      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="global-nav">目次</button>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="site-title">
+        <p class="eyebrow">ACTIVITY RECORD / 2019—</p>
+        <h1 id="site-title">RAY<br /><em>ARCHIVES</em></h1>
+        <div class="hero-copy">
+          <p>RAYの歩みを、出演・音楽・作品・メディア・グッズの記録からたどるためのアーカイブ。</p>
+          <p class="source-note">Notion原資料をもとに構成。各記録の表記とリンクをできる限りそのまま収録しています。</p>
+        </div>
+        <div class="hero-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+      </section>
+
+      <section class="utility-bar" aria-label="アーカイブ操作">
+        <label class="search-box" for="archive-search">
+          <span>SEARCH</span>
+          <input id="archive-search" type="search" autocomplete="off" placeholder="イベント、楽曲、作品名を検索" />
+        </label>
+        <p id="archive-status" role="status">アーカイブを読み込み中…</p>
+      </section>
+
+      <section id="search-results" class="search-results" aria-live="polite"></section>
+      <section id="overview" class="overview" aria-label="アーカイブ一覧"></section>
+      <section id="archive-view" class="archive-view" aria-live="polite"></section>
+    </main>
+
+    <footer>
+      <p>RAY ARCHIVES</p>
+      <p id="sync-info"></p>
+      <a id="source-link" href="https://app.notion.com/p/dotstokyo-idol-archive/RAY_Archive-Codex-3b99b75fba958053a405e67018a0ba59?source=copy_link" target="_blank" rel="noreferrer">原資料（Notion）</a>
+    </footer>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
