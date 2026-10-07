@@ -1,4 +1,4 @@
-# RAY Archives
+# RAY_Archives — RAY Archives
 
 アイドルグループ **RAY** の公開Notionアーカイブを、検索・区分別閲覧できる静的サイトにしたリポジトリです。
 
