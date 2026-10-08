@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="アイドルグループRAYの活動記録を横断できるアーカイブ" />
+    <meta name="description" content="アイドルグループRAYの活動記録を階層的にたどるアーカイブ" />
     <title>RAY Archives — 活動記録</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#records">記録一覧へ移動</a>
+    <a class="skip-link" href="#archive-tree">アーカイブ本文へ移動</a>
     <header class="site-header">
       <a class="wordmark" href="#top" aria-label="RAY Archives トップ">RAY <span>ARCHIVES</span></a>
       <p id="record-total" class="record-total">読み込み中</p>
@@ -17,37 +17,35 @@
 
     <main id="top">
       <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">RAY / ACTIVITY INDEX</p>
-        <h1 id="page-title">活動記録を、<br />ひとつの一覧で。</h1>
-        <p>ライブ、リリース、メディア、グッズ、楽曲などを横断して探せるRAYの活動アーカイブです。最初から一覧を表示し、開閉操作なしで主要情報を読めるようにしています。</p>
+        <p class="eyebrow">RAY / ACTIVITY ARCHIVE</p>
+        <h1 id="page-title">RAYの記録を、<br />構造ごとたどる。</h1>
+        <p>活動の分類から年・月・各記録へと、元の情報のつながりを保ったまま閲覧できるアーカイブです。見出しを開くと、その下位の記録だけが表示されます。</p>
       </section>
 
-      <section class="filter-panel" aria-label="記録を絞り込む">
-        <label class="query-field" for="archive-search">
-          <span>キーワード</span>
-          <input id="archive-search" type="search" autocomplete="off" placeholder="イベント名・楽曲名・人物名などを入力" />
-        </label>
-        <label for="category-filter"><span>分類</span><select id="category-filter"><option value="all">すべての分類</option></select></label>
-        <label for="year-filter"><span>年</span><select id="year-filter"><option value="all">すべての年</option></select></label>
-        <label for="sort-order"><span>並び順</span><select id="sort-order"><option value="newest">新しい記録から</option><option value="oldest">古い記録から</option><option value="title">名前順</option></select></label>
-        <button id="clear-filters" type="button">条件をリセット</button>
+      <section class="search-panel" aria-label="アーカイブを検索">
+        <label for="archive-search"><span>横断検索</span><input id="archive-search" type="search" autocomplete="off" placeholder="イベント名・楽曲名・人物名などを検索" /></label>
+        <p><kbd>/</kbd> で検索欄へ　<span id="search-status" aria-live="polite">分類を選ぶと階層を表示します</span></p>
       </section>
 
-      <section class="keyboard-guide" aria-label="キーボード操作">
-        <span><kbd>/</kbd> 検索欄へ</span><span><kbd>Esc</kbd> 検索を消去</span><span><kbd>J</kbd> <kbd>K</kbd> 一覧を移動</span>
-        <span id="filter-summary" aria-live="polite">準備中…</span>
-      </section>
-      <section class="category-summary" id="category-summary" aria-label="分類ごとの記録数"></section>
+      <section class="archive-explorer" aria-label="RAY活動アーカイブ">
+        <aside class="archive-navigation" aria-label="アーカイブの分類">
+          <div class="navigation-heading"><p class="eyebrow">ARCHIVE MAP</p><h2>分類から探す</h2></div>
+          <nav id="category-nav" class="category-nav"></nav>
+          <p class="navigation-help">番号キー <kbd>1</kbd>–<kbd>9</kbd> でも分類を切り替えられます。</p>
+        </aside>
 
-      <section class="records-section" aria-labelledby="records-heading">
-        <div class="records-heading"><div><p class="eyebrow">BROWSE</p><h2 id="records-heading">すべての記録</h2></div><p id="visible-count" aria-live="polite"></p></div>
-        <ol id="records" class="records-list" tabindex="-1"></ol>
-        <p id="empty-state" class="empty-state" hidden>条件に一致する記録はありません。検索語や絞り込み条件を変えてください。</p>
-        <div id="load-sentinel" aria-hidden="true"></div>
+        <section class="tree-panel" aria-labelledby="tree-title">
+          <header class="tree-header">
+            <p id="tree-breadcrumb" class="breadcrumb">RAY ARCHIVES</p>
+            <div><h2 id="tree-title">読み込み中…</h2><p id="tree-description"></p></div>
+          </header>
+          <div id="archive-tree" class="archive-tree" aria-live="polite"></div>
+          <p id="empty-state" class="empty-state" hidden>一致する記録はありません。別の検索語をお試しください。</p>
+        </section>
       </section>
     </main>
 
     <footer><p>RAY ARCHIVES</p><p id="sync-info"></p><a href="https://github.com/Hamaboh/RAY_Archives" target="_blank" rel="noreferrer">GITHUB ↗</a></footer>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=hierarchy-4"></script>
   </body>
 </html>
