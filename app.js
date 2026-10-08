@@ -1,133 +1,82 @@
-const overview = document.querySelector('#overview');
-const archiveView = document.querySelector('#archive-view');
-const searchInput = document.querySelector('#archive-search');
-const searchResults = document.querySelector('#search-results');
-const status = document.querySelector('#archive-status');
-const navigation = document.querySelector('#global-nav');
-const syncInfo = document.querySelector('#sync-info');
-const menuButton = document.querySelector('#menu-button');
+const rootId = '3b99b75f-ba95-8053-a405-e67018a0ba59';
+const batchSize = 160;
+const $ = (selector) => document.querySelector(selector);
+const searchInput = $('#archive-search');
+const categoryFilter = $('#category-filter');
+const yearFilter = $('#year-filter');
+const sortOrder = $('#sort-order');
+const clearFilters = $('#clear-filters');
+const recordsList = $('#records');
+const emptyState = $('#empty-state');
+const sentinel = $('#load-sentinel');
+const categorySummary = $('#category-summary');
+const recordTotal = $('#record-total');
+const visibleCount = $('#visible-count');
+const filterSummary = $('#filter-summary');
+const syncInfo = $('#sync-info');
 
-let archive;
-let blocks;
-let sections;
-let index = [];
-
-const textOf = (value) => {
-  if (!Array.isArray(value)) return '';
-  return value.map((part) => Array.isArray(part) ? String(part[0] ?? '') : '').join('');
-};
-const titleOf = (block) => textOf(block?.properties?.title) || textOf(block?.properties?.caption) || '';
+let blocks = {}, rootSections = [], entries = [], filtered = [], rendered = 0;
+const normalise = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
+const textOf = (value) => Array.isArray(value) ? value.map((part) => Array.isArray(part) ? String(part[0] ?? '') : '').join('') : '';
+const titleOf = (block) => normalise(textOf(block?.properties?.title) || textOf(block?.properties?.caption));
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' })[character]);
-const normalise = (value) => value.replace(/\s+/g, ' ').trim();
-const safeExternalUrl = (value) => {
-  try {
-    const url = new URL(value);
-    return ['https:', 'http:', 'mailto:'].includes(url.protocol) ? url.href : '';
-  } catch {
-    return '';
-  }
-};
 
-function richText(value) {
-  if (!Array.isArray(value)) return '';
-  return value.map((part) => {
-    if (!Array.isArray(part)) return '';
-    const content = escapeHtml(part[0] ?? '');
-    const annotation = Array.isArray(part[1]) ? part[1].find((item) => Array.isArray(item) && item[0] === 'a') : null;
-    const url = safeExternalUrl(annotation?.[1]);
-    return url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${content}</a>` : content;
-  }).join('');
+function parentPath(id) {
+  const chain = [], seen = new Set(); let current = blocks[id];
+  while (current?.parent_id && !seen.has(current.id)) { seen.add(current.id); current = blocks[current.parent_id]; if (!current) break; const title = titleOf(current); if (title) chain.push({ id:current.id, title }); }
+  return chain.reverse();
 }
-
-function propertyRows(block) {
-  const properties = Object.entries(block.properties ?? {}).filter(([key]) => key !== 'title' && key !== 'caption');
-  if (!properties.length) return '';
-  return `<dl class="property-list">${properties.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${richText(value) || escapeHtml(textOf(value))}</dd>`).join('')}</dl>`;
+function dateInfo(value) {
+  const match = value.match(/(20\d{2})年(?:\s*(\d{1,2})月)?(?:\s*(\d{1,2})日)?/) || value.match(/(20\d{2})[/.\-](\d{1,2})(?:[/.\-](\d{1,2}))?/);
+  if (!match) return { year:'', label:'記録日未詳', sort:0 };
+  const year = match[1], month = match[2] ? String(match[2]).padStart(2, '0') : '00', day = match[3] ? String(match[3]).padStart(2, '0') : '00';
+  return { year, label:month === '00' ? year : `${year}.${month}${day === '00' ? '' : `.${day}`}`, sort:Number(`${year}${month}${day}`) };
 }
+function categoryFor(path) { return path.find((part) => rootSections.some((section) => section.id === part.id))?.title ?? 'その他'; }
+function detailsOf(block) { return Object.entries(block.properties ?? {}).filter(([key]) => !['title','caption'].includes(key)).map(([key,value]) => [normalise(key),normalise(textOf(value))]).filter(([,value]) => value).slice(0,3); }
 
-function lineage(id) {
-  const names = [];
-  const seen = new Set();
-  let current = blocks[id];
-  while (current?.parent_id && !seen.has(current.id)) {
-    seen.add(current.id);
-    current = blocks[current.parent_id];
-    const name = titleOf(current);
-    if (name) names.push(name);
-  }
-  return names.reverse();
+function buildEntries() {
+  entries = Object.values(blocks).flatMap((block) => {
+    const title = titleOf(block);
+    const isStructuralHeading = ['page', 'toggle'].includes(block.type) && (
+      /^イベント出演情報_20\d{2}年(?:\d{1,2}月)?$/.test(title) ||
+      /^メディア情報_20\d{2}年$/.test(title) ||
+      /^グッズ_.+_20\d{2}年$/.test(title) ||
+      /^20\d{2}年(?:\d{1,2}月)?$/.test(title)
+    );
+    if (!title || isStructuralHeading || block.id === rootId || rootSections.some((section) => section.id === block.id)) return [];
+    const path = parentPath(block.id), category = categoryFor(path), details = detailsOf(block);
+    return [{ id:block.id, title, category, path, details, date:dateInfo(`${title} ${path.map((part) => part.title).join(' ')}`), type:block.type ?? 'record', searchable:normalise([title,category,path.map((part) => part.title).join(' '),...details.flat()].join(' ')) }];
+  });
 }
-
-function renderRecord(id, level = 0, opened = false) {
-  const block = blocks[id];
-  if (!block || block.alive === false) return '';
-  const title = titleOf(block);
-  const children = (block.content ?? []).map((childId) => renderRecord(childId, level + 1)).join('');
-  const body = `${propertyRows(block)}${children}`;
-  if (!title && !body) return '';
-  if (!body) return `<article class="record leaf"><p>${richText(block.properties?.title) || escapeHtml(title)}</p></article>`;
-  return `<details class="record" ${opened ? 'open' : ''}><summary><span class="record-title">${richText(block.properties?.title) || escapeHtml(title || '詳細')}</span><span class="record-kind">${escapeHtml(block.type ?? 'record')}</span></summary><div class="record-body">${body || '<p class="empty-note">記録なし</p>'}</div></details>`;
+function renderControls() {
+  const categories = rootSections.map(titleOf), years = [...new Set(entries.map((entry) => entry.date.year).filter(Boolean))].sort((a,b) => b.localeCompare(a));
+  categoryFilter.insertAdjacentHTML('beforeend', categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join(''));
+  yearFilter.insertAdjacentHTML('beforeend', years.map((year) => `<option value="${year}">${year}年</option>`).join(''));
+  categorySummary.innerHTML = categories.map((category) => `<button type="button" data-category="${escapeHtml(category)}" aria-pressed="false"><strong>${escapeHtml(category)}</strong><span>${entries.filter((entry) => entry.category === category).length.toLocaleString('ja-JP')} RECORDS</span></button>`).join('');
+  categorySummary.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => { categoryFilter.value = categoryFilter.value === button.dataset.category ? 'all' : button.dataset.category; applyFilters(); categoryFilter.focus(); }));
 }
-
-function showSection(id, focus = true) {
-  const section = sections.find((item) => item.id === id);
-  if (!section) return;
-  const sectionTitle = titleOf(section) || '記録';
-  archiveView.innerHTML = `<div class="archive-heading"><h2>${escapeHtml(sectionTitle)}</h2><button type="button" id="back-to-index">一覧へ戻る</button></div><div class="branch">${renderRecord(id, 0, true)}</div>`;
-  overview.hidden = true;
-  searchResults.innerHTML = '';
-  navigation.querySelectorAll('button').forEach((button) => button.setAttribute('aria-current', String(button.dataset.id === id)));
-  document.querySelector('#back-to-index').addEventListener('click', showOverview);
-  if (focus) archiveView.scrollIntoView({ behavior:'smooth', block:'start' });
+function activeText() { const parts=[]; if(categoryFilter.value !== 'all')parts.push(categoryFilter.value); if(yearFilter.value !== 'all')parts.push(`${yearFilter.value}年`); if(normalise(searchInput.value))parts.push(`「${normalise(searchInput.value)}」`); return parts.length ? parts.join(' / ') : 'すべての分類・年'; }
+function compareEntries(a,b) { if(sortOrder.value === 'title')return a.title.localeCompare(b.title,'ja'); const direction=sortOrder.value === 'oldest'?1:-1; return direction*((a.date.sort||-1)-(b.date.sort||-1))||a.title.localeCompare(b.title,'ja'); }
+function recordMarkup(entry,number) {
+  const details = entry.details.length ? entry.details.map(([key,value]) => `<span><b>${escapeHtml(key)}</b>${escapeHtml(value)}</span>`).join('') : `<span>${escapeHtml(entry.path.slice(-2).map((part) => part.title).join(' / ') || '詳細情報を収録')}</span>`;
+  return `<li class="record" id="record-${entry.id}" tabindex="-1" data-index="${number}"><div class="record-date">${escapeHtml(entry.date.label)}</div><div class="record-title">${escapeHtml(entry.title)}</div><div class="record-detail">${details}</div><div class="record-meta"><em>${escapeHtml(entry.category)}</em>${escapeHtml(entry.type)}</div></li>`;
 }
-
-function showOverview() {
-  archiveView.innerHTML = '';
-  overview.hidden = false;
-  navigation.querySelectorAll('button').forEach((button) => button.removeAttribute('aria-current'));
-  overview.scrollIntoView({ behavior:'smooth', block:'start' });
+function appendBatch() { const next=filtered.slice(rendered,rendered+batchSize); if(!next.length)return; const start=rendered; recordsList.querySelector('.load-note')?.remove(); recordsList.insertAdjacentHTML('beforeend',next.map((entry,offset)=>recordMarkup(entry,start+offset)).join('')); rendered+=next.length; if(rendered<filtered.length)recordsList.insertAdjacentHTML('beforeend','<li class="load-note">スクロールすると続きの記録を表示します</li>'); }
+function applyFilters() {
+  const words=normalise(searchInput.value).toLocaleLowerCase('ja-JP').split(' ').filter(Boolean);
+  filtered=entries.filter((entry)=>(categoryFilter.value==='all'||entry.category===categoryFilter.value)&&(yearFilter.value==='all'||entry.date.year===yearFilter.value)&&words.every((word)=>entry.searchable.toLocaleLowerCase('ja-JP').includes(word))).sort(compareEntries);
+  rendered=0; recordsList.innerHTML=''; emptyState.hidden=filtered.length!==0; appendBatch(); visibleCount.textContent=`${filtered.length.toLocaleString('ja-JP')} 件`; filterSummary.textContent=`${activeText()} — ${filtered.length.toLocaleString('ja-JP')}件`;
+  categorySummary.querySelectorAll('button').forEach((button)=>button.setAttribute('aria-pressed',String(categoryFilter.value===button.dataset.category)));
 }
-
-function buildIndex() {
-  index = Object.values(blocks).map((block) => ({
-    id: block.id,
-    title: titleOf(block),
-    text: normalise(Object.values(block.properties ?? {}).map(textOf).join(' ')),
-    path: lineage(block.id),
-  })).filter((item) => item.text);
+function focusRelative(direction) { const nodes=[...recordsList.querySelectorAll('.record')]; if(!nodes.length)return; const current=document.activeElement.closest?.('.record'), index=current?nodes.indexOf(current):(direction>0?-1:nodes.length); nodes[Math.max(0,Math.min(nodes.length-1,index+direction))].focus({preventScroll:false}); }
+function setupEvents() {
+  [searchInput,categoryFilter,yearFilter,sortOrder].forEach((element)=>element.addEventListener('input',applyFilters));
+  clearFilters.addEventListener('click',()=>{searchInput.value='';categoryFilter.value='all';yearFilter.value='all';sortOrder.value='newest';applyFilters();searchInput.focus();});
+  document.addEventListener('keydown',(event)=>{ if(event.key==='/'&&document.activeElement!==searchInput){event.preventDefault();searchInput.focus();} if(event.key==='Escape'&&document.activeElement===searchInput){searchInput.value='';applyFilters();} if(!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)){if(event.key.toLowerCase()==='j'){event.preventDefault();focusRelative(1);}if(event.key.toLowerCase()==='k'){event.preventDefault();focusRelative(-1);}} });
+  new IntersectionObserver((observed)=>{if(observed.some((item)=>item.isIntersecting)&&rendered<filtered.length)appendBatch();},{rootMargin:'700px'}).observe(sentinel);
 }
-
-function search(query) {
-  const words = normalise(query).toLocaleLowerCase('ja-JP').split(' ').filter(Boolean);
-  if (!words.length) { searchResults.innerHTML = ''; return; }
-  const results = index.filter((item) => words.every((word) => item.text.toLocaleLowerCase('ja-JP').includes(word))).slice(0, 80);
-  searchResults.innerHTML = `<p class="search-heading">${results.length ? `${results.length}${results.length === 80 ? '+' : ''} 件` : '一致する記録はありません'}</p>${results.length ? `<ul class="result-list">${results.map((result) => `<li><button type="button" data-section="${escapeHtml((result.path.length ? sections.find((section) => result.path.includes(titleOf(section)))?.id : null) || '')}">${escapeHtml(result.title || result.text.slice(0, 100))}</button><small>${escapeHtml(result.path.join(' / '))}</small></li>`).join('')}</ul>` : ''}`;
-  searchResults.querySelectorAll('button[data-section]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.section) showSection(button.dataset.section); }));
-}
-
-function setupInterface() {
-  const root = blocks[archive.sourceRootId];
-  sections = (root.content ?? []).map((id) => blocks[id]).filter((block) => block && titleOf(block));
-  overview.innerHTML = sections.map((section, number) => `<button type="button" class="section-card" data-id="${section.id}"><span class="number">${String(number + 1).padStart(2, '0')}</span><strong>${escapeHtml(titleOf(section))}</strong><small>${section.content?.length ?? 0} RECORD GROUPS</small></button>`).join('');
-  overview.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => showSection(button.dataset.id)));
-  navigation.innerHTML = sections.map((section) => `<button type="button" data-id="${section.id}">${escapeHtml(titleOf(section))}</button>`).join('');
-  navigation.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => { showSection(button.dataset.id); navigation.classList.remove('open'); menuButton.setAttribute('aria-expanded', 'false'); }));
-  buildIndex();
-  status.textContent = `${index.length.toLocaleString('ja-JP')} 件の記録を収録`;
-  syncInfo.textContent = `LAST SYNC ${new Date(archive.syncedAt).toLocaleDateString('ja-JP')}`;
-}
-
-menuButton.addEventListener('click', () => { const opened = navigation.classList.toggle('open'); menuButton.setAttribute('aria-expanded', String(opened)); });
-searchInput.addEventListener('input', () => search(searchInput.value));
-
 try {
-  const response = await fetch('./data/archive.json', { cache:'no-cache' });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  archive = await response.json();
-  blocks = archive.blocks;
-  setupInterface();
-} catch (error) {
-  console.error(error);
-  status.textContent = 'アーカイブを読み込めませんでした。';
-  archiveView.innerHTML = '<p class="empty-note">データファイルの読み込みに失敗しました。同期後に再読み込みしてください。</p>';
-}
+  const response=await fetch('./data/archive.json',{cache:'no-cache'}); if(!response.ok)throw new Error(`HTTP ${response.status}`); const archive=await response.json(); blocks=archive.blocks;
+  rootSections=(blocks[rootId]?.content??[]).map((id)=>blocks[id]).filter((block)=>block&&titleOf(block)); buildEntries(); renderControls(); setupEvents(); applyFilters(); recordTotal.textContent=`${entries.length.toLocaleString('ja-JP')} RECORDS`; syncInfo.textContent=`LAST SYNC ${new Date(archive.syncedAt).toLocaleDateString('ja-JP')}`;
+} catch(error) { console.error(error); recordTotal.textContent='DATA ERROR'; emptyState.hidden=false; emptyState.textContent='アーカイブデータを読み込めませんでした。時間をおいて再読み込みしてください。'; }

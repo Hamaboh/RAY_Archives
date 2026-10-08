@@ -3,47 +3,51 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="アイドルグループRAYの活動記録アーカイブ" />
-    <title>RAY Archives</title>
+    <meta name="description" content="アイドルグループRAYの活動記録を横断できるアーカイブ" />
+    <title>RAY Archives — 活動記録</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">本文へ移動</a>
+    <a class="skip-link" href="#records">記録一覧へ移動</a>
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="RAY Archives ホーム">RAY<span>ARCHIVES</span></a>
-      <nav id="global-nav" aria-label="アーカイブの区分"></nav>
-      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="global-nav">目次</button>
+      <a class="wordmark" href="#top" aria-label="RAY Archives トップ">RAY <span>ARCHIVES</span></a>
+      <p id="record-total" class="record-total">読み込み中</p>
+      <a class="source-link" href="https://app.notion.com/p/dotstokyo-idol-archive/RAY_Archive-Codex-3b99b75fba958053a405e67018a0ba59?source=copy_link" target="_blank" rel="noreferrer">SOURCE ↗</a>
     </header>
 
-    <main id="main">
-      <section class="hero" id="top" aria-labelledby="site-title">
-        <p class="eyebrow">ACTIVITY RECORD / 2019—</p>
-        <h1 id="site-title">RAY<br /><em>ARCHIVES</em></h1>
-        <div class="hero-copy">
-          <p>RAYの歩みを、出演・音楽・作品・メディア・グッズの記録からたどるためのアーカイブ。</p>
-          <p class="source-note">Notion原資料をもとに構成。各記録の表記とリンクをできる限りそのまま収録しています。</p>
-        </div>
-        <div class="hero-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+    <main id="top">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">RAY / ACTIVITY INDEX</p>
+        <h1 id="page-title">活動記録を、<br />ひとつの一覧で。</h1>
+        <p>ライブ、リリース、メディア、グッズ、楽曲などを横断して探せるRAYの活動アーカイブです。最初から一覧を表示し、開閉操作なしで主要情報を読めるようにしています。</p>
       </section>
 
-      <section class="utility-bar" aria-label="アーカイブ操作">
-        <label class="search-box" for="archive-search">
-          <span>SEARCH</span>
-          <input id="archive-search" type="search" autocomplete="off" placeholder="イベント、楽曲、作品名を検索" />
+      <section class="filter-panel" aria-label="記録を絞り込む">
+        <label class="query-field" for="archive-search">
+          <span>キーワード</span>
+          <input id="archive-search" type="search" autocomplete="off" placeholder="イベント名・楽曲名・人物名などを入力" />
         </label>
-        <p id="archive-status" role="status">アーカイブを読み込み中…</p>
+        <label for="category-filter"><span>分類</span><select id="category-filter"><option value="all">すべての分類</option></select></label>
+        <label for="year-filter"><span>年</span><select id="year-filter"><option value="all">すべての年</option></select></label>
+        <label for="sort-order"><span>並び順</span><select id="sort-order"><option value="newest">新しい記録から</option><option value="oldest">古い記録から</option><option value="title">名前順</option></select></label>
+        <button id="clear-filters" type="button">条件をリセット</button>
       </section>
 
-      <section id="search-results" class="search-results" aria-live="polite"></section>
-      <section id="overview" class="overview" aria-label="アーカイブ一覧"></section>
-      <section id="archive-view" class="archive-view" aria-live="polite"></section>
+      <section class="keyboard-guide" aria-label="キーボード操作">
+        <span><kbd>/</kbd> 検索欄へ</span><span><kbd>Esc</kbd> 検索を消去</span><span><kbd>J</kbd> <kbd>K</kbd> 一覧を移動</span>
+        <span id="filter-summary" aria-live="polite">準備中…</span>
+      </section>
+      <section class="category-summary" id="category-summary" aria-label="分類ごとの記録数"></section>
+
+      <section class="records-section" aria-labelledby="records-heading">
+        <div class="records-heading"><div><p class="eyebrow">BROWSE</p><h2 id="records-heading">すべての記録</h2></div><p id="visible-count" aria-live="polite"></p></div>
+        <ol id="records" class="records-list" tabindex="-1"></ol>
+        <p id="empty-state" class="empty-state" hidden>条件に一致する記録はありません。検索語や絞り込み条件を変えてください。</p>
+        <div id="load-sentinel" aria-hidden="true"></div>
+      </section>
     </main>
 
-    <footer>
-      <p>RAY ARCHIVES</p>
-      <p id="sync-info"></p>
-      <a id="source-link" href="https://app.notion.com/p/dotstokyo-idol-archive/RAY_Archive-Codex-3b99b75fba958053a405e67018a0ba59?source=copy_link" target="_blank" rel="noreferrer">原資料（Notion）</a>
-    </footer>
+    <footer><p>RAY ARCHIVES</p><p id="sync-info"></p><a href="https://github.com/Hamaboh/RAY_Archives" target="_blank" rel="noreferrer">GITHUB ↗</a></footer>
     <script type="module" src="app.js"></script>
   </body>
 </html>
