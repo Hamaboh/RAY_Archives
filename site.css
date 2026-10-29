@@ -93,9 +93,8 @@ main { max-width:var(--max); margin:auto; }
 .event-topics p { margin:0 0 3px; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.1em; }
 .event-topics ul { display:grid; gap:2px; margin:0; padding:0; list-style:none; }
 .event-topics li { padding-left:10px; color:var(--subtle); font-size:10px; line-height:1.4; }
-.event-topics li span { margin-right:4px; color:var(--white); font-family:"Meiryo UI",Meiryo,sans-serif; }
 .event-card:hover .event-topics { border-color:rgba(0,0,0,.5); background:rgba(0,0,0,.05); }
-.event-card:hover .event-topics p,.event-card:hover .event-topics li,.event-card:hover .event-topics li span { color:var(--black); }
+.event-card:hover .event-topics p,.event-card:hover .event-topics li { color:var(--black); }
 .event-details { margin-top:3px; }
 .event-details summary { width:max-content; color:var(--white); cursor:pointer; font-size:10px; text-decoration:underline; text-underline-offset:3px; }
 .event-card:hover .event-details summary,.event-card:hover .event-source,.event-card:hover .event-details-grid dt { color:var(--black); }

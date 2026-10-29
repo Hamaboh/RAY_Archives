@@ -26,7 +26,7 @@ function notesFor(event) {
 function topicsMarkup(event) {
   const { topics } = notesFor(event);
   if (!topics.length) return '';
-  return `<section class="event-topics" aria-label="トピック"><p>TOPICS</p><ul>${topics.map((topic) => `<li><span>【トピック】</span>${escapeHtml(inline(topic).replace(/,\s*$/, ''))}</li>`).join('')}</ul></section>`;
+  return `<section class="event-topics" aria-label="トピック"><p>TOPICS</p><ul>${topics.map((topic) => `<li>${escapeHtml(inline(topic).replace(/,\s*$/, ''))}</li>`).join('')}</ul></section>`;
 }
 function detailsMarkup(event) {
   const { price } = notesFor(event);
