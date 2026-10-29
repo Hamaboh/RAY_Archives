@@ -4,7 +4,7 @@ const normalise = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const inline = (value) => normalise(value).replace(/,\s+/g, ', ');
 const splitValues = (value) => String(value ?? '').split(/,\s*/).map((item) => item.trim()).filter((item) => item && item !== '-');
 const monthFormatter = new Intl.DateTimeFormat('ja-JP', { month: 'long' });
-const total = $('#event-total'), yearTotal = $('#year-total'), yearNav = $('#year-nav'), filterPanel = $('#event-filters'), filterStatus = $('#filter-status'), resetFilters = $('#reset-filters'), list = $('#event-list'), title = $('#results-title'), kicker = $('#results-kicker'), description = $('#results-description'), empty = $('#empty-state');
+const total = $('#event-total'), yearTotal = $('#year-total'), yearNav = $('#year-nav'), filterPanel = $('#event-filters'), filterStatus = $('#filter-status'), resetFilters = $('#reset-filters'), openFilters = $('#open-filters'), filterCount = $('#filter-count'), filterDialog = $('#event-filter-dialog'), closeFilters = $('#close-filters'), list = $('#event-list'), title = $('#results-title'), kicker = $('#results-kicker'), description = $('#results-description'), empty = $('#empty-state');
 let events = [], selectedYear = 'all';
 
 const valueFilters = [
@@ -12,15 +12,38 @@ const valueFilters = [
   { key: 'performers', label: '出演者', values: (event) => splitValues(event.performers) },
   { key: 'guests', label: '共演者', values: (event) => splitValues(event.guests) },
 ];
-const flagFilters = [
+const basicFlagFilters = [
   { key: 'twoMan', label: '2マンライブ', matches: (event) => /【2マンライブ】/.test(event.notes ?? '') },
   { key: 'threeMan', label: '3マンライブ', matches: (event) => /【3マンライブ】/.test(event.notes ?? '') },
   { key: 'collaboration', label: 'コラボ', matches: (event) => /【コラボ】/.test(event.notes ?? '') },
   { key: 'hosted', label: '主催', matches: (event) => /(?:presents|主催)/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'specialSet', label: '特殊セット', matches: (event) => /(?:考案)?セットリスト|特殊セット/.test(event.notes ?? '') },
   { key: 'postponed', label: '延期', matches: (event) => event.status === 'postponed' },
   { key: 'cancelled', label: '中止', matches: (event) => event.status === 'cancelled' },
 ];
+const specialSetFilters = [
+  { key: 'specialSet', label: '特殊セット（全般）', matches: (event) => /(?:考案)?セットリスト|特殊セット|RAY Acoustic Set|RAY BAND ?SET|RAY FEEDBACK SET|RAY Percussion Set|RAYCHANZWERK SET|EXPERIMENTAL VJ SET|RAY GROOVE SET|RAY MOSH SET|RAYPHEX TWIN|RAY IDM SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'acousticSet', label: 'RAY Acoustic Set', matches: (event) => /RAY Acoustic Set/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'bandSet', label: 'RAY BAND SET', matches: (event) => /RAY BAND ?SET|IDOLBANDSET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'feedbackSet', label: 'RAY FEEDBACK SET', matches: (event) => /RAY FEEDBACK SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'percussionSet', label: 'RAY Percussion Set', matches: (event) => /RAY Percussion Set/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'chanzwerkSet', label: 'RAYCHANZWERK SET', matches: (event) => /RAYCHANZWERK SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'experimentalVjSet', label: 'EXPERIMENTAL VJ SET', matches: (event) => /EXPERIMENTAL VJ SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'grooveSet', label: 'RAY GROOVE SET', matches: (event) => /RAY GROOVE SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'moshSet', label: 'RAY MOSH SET', matches: (event) => /RAY MOSH SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'rayphexTwin', label: 'RAYPHEX TWIN（RAY IDM SET）', matches: (event) => /RAYPHEX TWIN|RAY IDM SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+];
+const seriesFlagFilters = [
+  { key: 'birthdayOrProduced', label: '生誕イベント / プロデュース公演', matches: (event) => /生誕|誕生|birthday|バースデー|プロデュース/i.test(event.title) },
+  { key: 'extrome', label: 'エクストロメ', matches: (event) => /エクストロメ/.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'totalFeedback', label: 'Total Feedback', matches: (event) => /Total Feedback/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'predawn', label: 'PREDAWN', matches: (event) => /PREDAWN/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'neighbor', label: 'RAY presents「Neighbor?」', matches: (event) => /RAY presents「Neighbor\?/.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'relationship', label: 'RAY presents「Relationship」', matches: (event) => /RAY presents「Relationship/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'tieInReaction', label: '内山結愛 presents「tie in reaction」', matches: (event) => /tie in reaction/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'atmosphere', label: 'RAY/代代代/クロスノエシス 3WAY SPLIT『ATMOSPHERE』ALMOST TRANSPARENT', matches: (event) => /ATMOSPHERE|ALMOST TRANSPARENT/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'noMyWay', label: 'RAY×BELLRING少女ハート SPLIT TOUR NO MY WAY', matches: (event) => /NO MY WAY/i.test(`${event.title}\n${event.notes ?? ''}`) },
+];
+const flagFilters = [...basicFlagFilters, ...seriesFlagFilters, ...specialSetFilters];
 const filterState = Object.fromEntries(valueFilters.map(({ key }) => [key, new Set()]));
 Object.assign(filterState, Object.fromEntries(flagFilters.map(({ key }) => [key, 'all'])));
 const filterOptions = {};
@@ -105,10 +128,24 @@ function updateFilterChrome() {
   const active = activeFilterLabels();
   filterStatus.textContent = active.length ? `${active.length}項目で絞り込み中` : '条件を選択して絞り込み';
   resetFilters.hidden = !active.length;
+  filterCount.textContent = active.length ? `${active.length}件の条件を選択中` : '条件を選択';
+}
+function valueFilterMarkup({ key, label }) {
+  return `<details class="event-filter"><summary><span>${label}</span><b data-filter-summary="${key}">すべて</b></summary><div class="event-filter-menu"><label class="filter-search"><span class="visually-hidden">${label}を絞り込む</span><input type="search" data-value-search="${key}" placeholder="${label}を入力して絞り込む" autocomplete="off" /></label><div class="filter-options" data-options="${key}"></div></div></details>`;
+}
+function flagFilterMarkup({ key, label }) {
+  return `<label class="event-flag"><span>${label}</span><select data-flag-filter="${key}" aria-label="${label}の条件"><option value="all">すべて</option><option value="true">TRUE</option><option value="false">FALSE</option></select></label>`;
+}
+function filterCategoryMarkup(kicker, title, content, className = '') {
+  return `<section class="filter-category ${className}"><header><p>${kicker}</p><h3>${title}</h3></header><div class="event-filters">${content}</div></section>`;
 }
 function renderFilters() {
   valueFilters.forEach(({ key, values }) => { filterOptions[key] = [...new Set(events.flatMap(values))].sort((a, b) => a.localeCompare(b, 'ja')); });
-  filterPanel.innerHTML = `${valueFilters.map(({ key, label }) => `<details class="event-filter"><summary><span>${label}</span><b data-filter-summary="${key}">すべて</b></summary><div class="event-filter-menu"><label class="filter-search"><span class="visually-hidden">${label}を絞り込む</span><input type="search" data-value-search="${key}" placeholder="${label}を入力して絞り込む" autocomplete="off" /></label><div class="filter-options" data-options="${key}"></div></div></details>`).join('')}${flagFilters.map(({ key, label }) => `<label class="event-flag"><span>${label}</span><select data-flag-filter="${key}" aria-label="${label}の条件"><option value="all">すべて</option><option value="true">TRUE</option><option value="false">FALSE</option></select></label>`).join('')}`;
+  filterPanel.innerHTML = [
+    filterCategoryMarkup('BASIC', '基本条件', `${valueFilters.map(valueFilterMarkup).join('')}${basicFlagFilters.map(flagFilterMarkup).join('')}`),
+    filterCategoryMarkup('EVENT TYPES & SERIES', '企画・シリーズ', seriesFlagFilters.map(flagFilterMarkup).join('')),
+    filterCategoryMarkup('SPECIAL SETS', '特殊セット', specialSetFilters.map(flagFilterMarkup).join(''), 'filter-category--sets'),
+  ].join('');
   valueFilters.forEach(({ key }) => renderValueOptions(key));
   updateFilterChrome();
 }
@@ -141,6 +178,8 @@ function bindFilters() {
     }
   });
   resetFilters.addEventListener('click', clearFilters);
+  openFilters.addEventListener('click', () => filterDialog.showModal());
+  closeFilters.addEventListener('click', () => filterDialog.close());
 }
 function renderYears() {
   const years = [...new Set(events.map((event) => String(event.year)))].sort((a, b) => a.localeCompare(b, 'ja'));
