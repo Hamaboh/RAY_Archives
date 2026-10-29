@@ -5,7 +5,7 @@ const inline = (value) => normalise(value).replace(/,\s+/g, ', ');
 const splitValues = (value) => String(value ?? '').split(/,\s*/).map((item) => item.trim()).filter((item) => item && item !== '-');
 const monthFormatter = new Intl.DateTimeFormat('ja-JP', { month: 'long' });
 const total = $('#event-total'), yearTotal = $('#year-total'), yearNav = $('#year-nav'), filterPanel = $('#event-filters'), filterStatus = $('#filter-status'), resetFilters = $('#reset-filters'), openFilters = $('#open-filters'), filterCount = $('#filter-count'), filterDialog = $('#event-filter-dialog'), closeFilters = $('#close-filters'), list = $('#event-list'), title = $('#results-title'), kicker = $('#results-kicker'), description = $('#results-description'), empty = $('#empty-state');
-let events = [], selectedYear = 'all';
+let events = [], selectedYear = 'all', filterLogic = 'and';
 
 const valueFilters = [
   { key: 'venue', label: '会場', values: (event) => splitValues(event.venue) },
@@ -46,6 +46,7 @@ const seriesFlagFilters = [
 const flagFilters = [...basicFlagFilters, ...seriesFlagFilters, ...specialSetFilters];
 const filterState = Object.fromEntries(valueFilters.map(({ key }) => [key, new Set()]));
 Object.assign(filterState, Object.fromEntries(flagFilters.map(({ key }) => [key, 'all'])));
+const valueLogic = Object.fromEntries(valueFilters.map(({ key }) => [key, 'or']));
 const filterOptions = {};
 
 function notesFor(event) {
@@ -87,20 +88,21 @@ function eventMarkup(event) {
 }
 
 function activeFilterLabels() {
-  const values = valueFilters.filter(({ key }) => filterState[key].size).map(({ label }) => label);
+  const values = valueFilters.filter(({ key }) => filterState[key].size).map(({ key, label }) => filterState[key].size > 1 ? `${label}（${valueLogic[key].toUpperCase()}）` : label);
   const flags = flagFilters.filter(({ key }) => filterState[key] !== 'all').map(({ label }) => label);
   return [...values, ...flags];
 }
 function eventMatchesFilters(event) {
-  const matchesValues = valueFilters.every(({ key, values }) => {
+  const conditions = valueFilters.flatMap(({ key, values }) => {
     const selected = filterState[key];
-    return !selected.size || values(event).some((value) => selected.has(value));
-  });
-  const matchesFlags = flagFilters.every(({ key, matches }) => {
+    if (!selected.size) return [];
+    const eventValues = values(event);
+    return [valueLogic[key] === 'and' ? [...selected].every((value) => eventValues.includes(value)) : eventValues.some((value) => selected.has(value))];
+  }).concat(flagFilters.flatMap(({ key, matches }) => {
     const selection = filterState[key];
-    return selection === 'all' || (selection === 'true' ? matches(event) : !matches(event));
-  });
-  return matchesValues && matchesFlags;
+    return selection === 'all' ? [] : [selection === 'true' ? matches(event) : !matches(event)];
+  }));
+  return !conditions.length || (filterLogic === 'and' ? conditions.every(Boolean) : conditions.some(Boolean));
 }
 function filteredEvents() {
   return events.filter((event) => (selectedYear === 'all' || String(event.year) === selectedYear) && eventMatchesFilters(event));
@@ -126,12 +128,13 @@ function updateFilterChrome() {
     if (summary) summary.textContent = filterSummary(key);
   });
   const active = activeFilterLabels();
-  filterStatus.textContent = active.length ? `${active.length}項目で絞り込み中` : '条件を選択して絞り込み';
+  const logicLabel = filterLogic === 'and' ? 'すべてに一致（AND）' : 'いずれかに一致（OR）';
+  filterStatus.textContent = active.length ? `${active.length}項目で絞り込み中：${logicLabel}` : '条件を選択して絞り込み';
   resetFilters.hidden = !active.length;
-  filterCount.textContent = active.length ? `${active.length}件の条件を選択中` : '条件を選択';
+  filterCount.textContent = active.length ? `${active.length}項目・${filterLogic.toUpperCase()}` : '条件を選択';
 }
 function valueFilterMarkup({ key, label }) {
-  return `<details class="event-filter"><summary><span>${label}</span><b data-filter-summary="${key}">すべて</b></summary><div class="event-filter-menu"><label class="filter-search"><span class="visually-hidden">${label}を絞り込む</span><input type="search" data-value-search="${key}" placeholder="${label}を入力して絞り込む" autocomplete="off" /></label><div class="filter-options" data-options="${key}"></div></div></details>`;
+  return `<details class="event-filter"><summary><span>${label}</span><b data-filter-summary="${key}">すべて</b></summary><div class="event-filter-menu"><label class="filter-value-logic"><span>複数選択時</span><select data-value-logic="${key}" aria-label="${label}の複数選択条件"><option value="or"${valueLogic[key] === 'or' ? ' selected' : ''}>いずれか（OR）</option><option value="and"${valueLogic[key] === 'and' ? ' selected' : ''}>すべて（AND）</option></select></label><label class="filter-search"><span class="visually-hidden">${label}を絞り込む</span><input type="search" data-value-search="${key}" placeholder="${label}を入力して絞り込む" autocomplete="off" /></label><div class="filter-options" data-options="${key}"></div></div></details>`;
 }
 function flagFilterMarkup({ key, label }) {
   return `<label class="event-flag"><span>${label}</span><select data-flag-filter="${key}" aria-label="${label}の条件"><option value="all">すべて</option><option value="true">TRUE</option><option value="false">FALSE</option></select></label>`;
@@ -139,9 +142,13 @@ function flagFilterMarkup({ key, label }) {
 function filterCategoryMarkup(kicker, title, content, className = '') {
   return `<section class="filter-category ${className}"><header><p>${kicker}</p><h3>${title}</h3></header><div class="event-filters">${content}</div></section>`;
 }
+function filterLogicMarkup() {
+  return `<section class="filter-logic-group"><div><p>CONDITION GROUP</p><h3>条件のつなぎ方</h3><span>異なる項目どうしの一致条件を選択</span></div><label><span class="visually-hidden">条件のつなぎ方</span><select data-filter-logic aria-label="条件のつなぎ方"><option value="and"${filterLogic === 'and' ? ' selected' : ''}>すべてに一致（AND）</option><option value="or"${filterLogic === 'or' ? ' selected' : ''}>いずれかに一致（OR）</option></select></label></section>`;
+}
 function renderFilters() {
   valueFilters.forEach(({ key, values }) => { filterOptions[key] = [...new Set(events.flatMap(values))].sort((a, b) => a.localeCompare(b, 'ja')); });
   filterPanel.innerHTML = [
+    filterLogicMarkup(),
     filterCategoryMarkup('BASIC', '基本条件', `${valueFilters.map(valueFilterMarkup).join('')}${basicFlagFilters.map(flagFilterMarkup).join('')}`),
     filterCategoryMarkup('EVENT TYPES & SERIES', '企画・シリーズ', seriesFlagFilters.map(flagFilterMarkup).join('')),
     filterCategoryMarkup('SPECIAL SETS', '特殊セット', specialSetFilters.map(flagFilterMarkup).join(''), 'filter-category--sets'),
@@ -152,8 +159,12 @@ function renderFilters() {
 function clearFilters() {
   valueFilters.forEach(({ key }) => filterState[key].clear());
   flagFilters.forEach(({ key }) => { filterState[key] = 'all'; });
+  valueFilters.forEach(({ key }) => { valueLogic[key] = 'or'; });
+  filterLogic = 'and';
   filterPanel.querySelectorAll('input[data-value-search]').forEach((input) => { input.value = ''; });
   filterPanel.querySelectorAll('select[data-flag-filter]').forEach((select) => { select.value = 'all'; });
+  filterPanel.querySelectorAll('select[data-value-logic]').forEach((select) => { select.value = 'or'; });
+  filterPanel.querySelector('select[data-filter-logic]').value = 'and';
   valueFilters.forEach(({ key }) => renderValueOptions(key));
   updateFilterChrome();
   renderEvents();
@@ -176,6 +187,16 @@ function bindFilters() {
       updateFilterChrome();
       renderEvents();
     }
+    if (input.matches('select[data-value-logic]')) {
+      valueLogic[input.dataset.valueLogic] = input.value;
+      updateFilterChrome();
+      renderEvents();
+    }
+    if (input.matches('select[data-filter-logic]')) {
+      filterLogic = input.value;
+      updateFilterChrome();
+      renderEvents();
+    }
   });
   resetFilters.addEventListener('click', clearFilters);
   openFilters.addEventListener('click', () => filterDialog.showModal());
@@ -190,7 +211,7 @@ function renderEvents() {
   const visible = filteredEvents(), active = activeFilterLabels(), label = selectedYear === 'all' ? '全期間' : `${selectedYear}年`, groups = new Map();
   kicker.textContent = active.length ? 'FILTERED EVENT RECORDS' : `${label.toUpperCase()} / EVENT RECORDS`;
   title.textContent = active.length ? `${label}の絞り込み結果` : `${label}のイベント`;
-  description.textContent = `${visible.length.toLocaleString('ja-JP')}件を表示。${active.length ? `「${active.join('・')}」の条件で絞り込んでいます。` : '開催月ごとに、日付順で表示しています。'}`;
+  description.textContent = `${visible.length.toLocaleString('ja-JP')}件を表示。${active.length ? `「${active.join('・')}」を${filterLogic === 'and' ? 'すべて満たす（AND）' : 'いずれかを満たす（OR）'}条件で絞り込んでいます。` : '開催月ごとに、日付順で表示しています。'}`;
   visible.forEach((event) => { const key = `${event.year}-${String(event.month).padStart(2, '0')}`; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(event); });
   list.innerHTML = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, 'ja')).map(([key, group]) => { const [year] = key.split('-'); return `<section class="event-month"><header><p>${year}</p><h3>${monthFormatter.format(new Date(`${key}-01T00:00`))}</h3><span>${group.length} EVENTS</span></header><div class="event-records">${group.map(eventMarkup).join('')}</div></section>`; }).join('');
   empty.hidden = visible.length !== 0;
