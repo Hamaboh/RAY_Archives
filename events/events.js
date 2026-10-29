@@ -10,9 +10,14 @@ function detailsMarkup(event) {
   if (!details.length && !event.url) return '';
   return `<details class="event-details"><summary>詳細を見る</summary><div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value).replace(/,\s*/g, ',<br />')}</dd></div>`).join('')}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}</details>`;
 }
+function performersMarkup(value) {
+  const performers = normalise(value).split(/\s*,\s*/).filter((performer) => performer && performer !== '-');
+  if (!performers.length) return '';
+  return `<ul class="event-performers" aria-label="出演者">${performers.map((performer) => `<li>${escapeHtml(performer)}</li>`).join('')}</ul>`;
+}
 function eventMarkup(event) {
   const status = event.status === 'cancelled' ? '<span class="event-status">中止</span>' : event.status === 'postponed' ? '<span class="event-status">延期</span>' : '';
-  return `<article class="event-card"><time datetime="${escapeHtml(event.date)}"><span>${String(event.month).padStart(2, '0')}</span><strong>${String(event.day).padStart(2, '0')}</strong><small>${event.time || 'TIME N/A'}</small></time><div class="event-main"><h3>${escapeHtml(event.title)}${status}</h3>${event.venue ? `<p class="event-venue">${escapeHtml(event.venue)}</p>` : ''}${detailsMarkup(event)}</div></article>`;
+  return `<article class="event-card"><time datetime="${escapeHtml(event.date)}"><span>${String(event.month).padStart(2, '0')}</span><strong>${String(event.day).padStart(2, '0')}</strong><small>${event.time || 'TIME N/A'}</small></time><div class="event-main"><h3>${escapeHtml(event.title)}${status}</h3>${event.venue ? `<p class="event-venue">${escapeHtml(event.venue)}</p>` : ''}${detailsMarkup(event)}</div><div class="event-side">${performersMarkup(event.performers)}</div></article>`;
 }
 function filteredEvents() { const words = normalise(search.value).toLocaleLowerCase('ja-JP').split(' ').filter(Boolean); return events.filter((event) => { const matchedYear = words.length > 0 || selectedYear === 'all' || String(event.year) === selectedYear; const haystack = normalise([event.title, event.venue, event.performers, event.guests, event.price].join(' ')).toLocaleLowerCase('ja-JP'); return matchedYear && words.every((word) => haystack.includes(word)); }); }
 function renderYears() {
