@@ -24,7 +24,7 @@ function renderEvents() {
   const visible = filteredEvents(), query = normalise(search.value), label = selectedYear === 'all' ? '全期間' : `${selectedYear}年`, groups = new Map();
   kicker.textContent = query ? 'SEARCH RESULT / ALL YEARS' : `${label.toUpperCase()} / EVENT RECORDS`; title.textContent = query ? `「${query}」の検索結果` : `${label}のイベント`; description.textContent = `${visible.length.toLocaleString('ja-JP')}件を表示。${query ? '年の選択にかかわらず、タイトル、会場、出演者、共演者、料金を横断検索しています。' : '開催月ごとに、日付順で表示しています。'}`;
   visible.forEach((event) => { const key = `${event.year}-${String(event.month).padStart(2, '0')}`; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(event); });
-  list.innerHTML = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, 'ja')).map(([key, group]) => { const [year] = key.split('-'); return `<section class="event-month"><header><p>${year}</p><h3>${monthFormatter.format(new Date(`${key}-01T00:00`))}</h3><span>${group.length} EVENTS</span></header>${group.map(eventMarkup).join('')}</section>`; }).join(''); empty.hidden = visible.length !== 0;
+  list.innerHTML = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, 'ja')).map(([key, group]) => { const [year] = key.split('-'); return `<section class="event-month"><header><p>${year}</p><h3>${monthFormatter.format(new Date(`${key}-01T00:00`))}</h3><span>${group.length} EVENTS</span></header><div class="event-records">${group.map(eventMarkup).join('')}</div></section>`; }).join(''); empty.hidden = visible.length !== 0;
 }
 try {
   const response = await fetch('../data/events.json', { cache: 'no-cache' }); if (!response.ok) throw new Error(`HTTP ${response.status}`);
