@@ -104,8 +104,16 @@ function eventMatchesFilters(event) {
   }));
   return !conditions.length || (filterLogic === 'and' ? conditions.every(Boolean) : conditions.some(Boolean));
 }
+function statusIsVisible(event) {
+  if (event.status === 'postponed') return filterState.postponed === 'true';
+  if (event.status === 'cancelled') return filterState.cancelled === 'true';
+  return true;
+}
+function isRegularEvent(event) {
+  return event.status !== 'postponed' && event.status !== 'cancelled';
+}
 function filteredEvents() {
-  return events.filter((event) => (selectedYear === 'all' || String(event.year) === selectedYear) && eventMatchesFilters(event));
+  return events.filter((event) => (selectedYear === 'all' || String(event.year) === selectedYear) && statusIsVisible(event) && eventMatchesFilters(event));
 }
 function filterSummary(key) {
   const count = filterState[key].size;
@@ -137,7 +145,8 @@ function valueFilterMarkup({ key, label }) {
   return `<details class="event-filter"><summary><span>${label}</span><b data-filter-summary="${key}">すべて</b></summary><div class="event-filter-menu"><label class="filter-value-logic"><span>複数選択時</span><select data-value-logic="${key}" aria-label="${label}の複数選択条件"><option value="or"${valueLogic[key] === 'or' ? ' selected' : ''}>いずれか（OR）</option><option value="and"${valueLogic[key] === 'and' ? ' selected' : ''}>すべて（AND）</option></select></label><label class="filter-search"><span class="visually-hidden">${label}を絞り込む</span><input type="search" data-value-search="${key}" placeholder="${label}を入力して絞り込む" autocomplete="off" /></label><div class="filter-options" data-options="${key}"></div></div></details>`;
 }
 function flagFilterMarkup({ key, label }) {
-  return `<label class="event-flag"><span>${label}</span><select data-flag-filter="${key}" aria-label="${label}の条件"><option value="all">すべて</option><option value="true">TRUE</option><option value="false">FALSE</option></select></label>`;
+  const isStatusFilter = key === 'postponed' || key === 'cancelled';
+  return `<label class="event-flag"><span>${label}</span><select data-flag-filter="${key}" aria-label="${label}の条件"><option value="all">${isStatusFilter ? '非表示（初期設定）' : 'すべて'}</option><option value="true">TRUE</option><option value="false">FALSE</option></select></label>`;
 }
 function filterCategoryMarkup(kicker, title, content, className = '') {
   return `<section class="filter-category ${className}"><header><p>${kicker}</p><h3>${title}</h3></header><div class="event-filters">${content}</div></section>`;
@@ -204,7 +213,8 @@ function bindFilters() {
 }
 function renderYears() {
   const years = [...new Set(events.map((event) => String(event.year)))].sort((a, b) => a.localeCompare(b, 'ja'));
-  yearNav.innerHTML = [`<button type="button" data-year="all" aria-current="${selectedYear === 'all'}"><span>すべてのイベント出演情報</span><b>${events.length.toLocaleString('ja-JP')}</b></button>`, ...years.map((year) => `<button type="button" data-year="${year}" aria-current="${selectedYear === year}"><span>${year}</span><b>${events.filter((event) => String(event.year) === year).length.toLocaleString('ja-JP')}</b></button>`)].join('');
+  const regularEvents = events.filter(isRegularEvent);
+  yearNav.innerHTML = [`<button type="button" data-year="all" aria-current="${selectedYear === 'all'}"><span>すべてのイベント出演情報</span><b>${regularEvents.length.toLocaleString('ja-JP')}</b></button>`, ...years.map((year) => `<button type="button" data-year="${year}" aria-current="${selectedYear === year}"><span>${year}</span><b>${regularEvents.filter((event) => String(event.year) === year).length.toLocaleString('ja-JP')}</b></button>`)].join('');
   yearNav.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => { selectedYear = button.dataset.year; renderYears(); renderEvents(); }));
 }
 function renderEvents() {
