@@ -38,6 +38,7 @@ async function importRows(tsv) {
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
   const value = (row, label) => clean(row[index[label]]);
+  const noteValue = (row) => String(row[index['備考']] ?? '').replace(/\r\n?/g, '\n').trim();
   const events = rows.map((row) => {
     const base = parseDate(value(row, '開催日時'));
     const title = value(row, '公演名');
@@ -53,6 +54,7 @@ async function importRows(tsv) {
       outfit: value(row, '衣装'),
       guests: value(row, '共演者'),
       url: value(row, 'イベントURL'),
+      notes: '備考' in index ? noteValue(row) : '',
       status: isTrue(value(row, '中止')) ? 'cancelled' : isTrue(value(row, '延期')) ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));

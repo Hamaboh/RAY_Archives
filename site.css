@@ -89,14 +89,21 @@ main { max-width:var(--max); margin:auto; }
 .event-card:hover .event-performers li { border-color:rgba(0,0,0,.42); color:var(--black); }
 .event-status { display:inline-block; margin-left:7px; padding:1px 4px; border:1px solid var(--white); color:var(--white); font:9px "Meiryo UI",Meiryo,sans-serif; vertical-align:1px; }
 .event-card:hover .event-status { border-color:var(--black); color:var(--black); }
+.event-topics { margin-top:7px; padding:7px 9px; border-left:1px solid var(--line); background:rgba(255,255,255,.045); }
+.event-topics p { margin:0 0 3px; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.1em; }
+.event-topics ul { display:grid; gap:2px; margin:0; padding:0; list-style:none; }
+.event-topics li { position:relative; padding-left:10px; color:var(--subtle); font-size:10px; line-height:1.4; }
+.event-topics li::before { position:absolute; left:0; content:'·'; color:var(--white); }
+.event-card:hover .event-topics { border-color:rgba(0,0,0,.5); background:rgba(0,0,0,.05); }
+.event-card:hover .event-topics p,.event-card:hover .event-topics li { color:var(--black); }
 .event-details { margin-top:3px; }
 .event-details summary { width:max-content; color:var(--white); cursor:pointer; font-size:10px; text-decoration:underline; text-underline-offset:3px; }
 .event-card:hover .event-details summary,.event-card:hover .event-source,.event-card:hover .event-details-grid dt { color:var(--black); }
-.event-details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; margin-top:9px; padding:10px; border:0; border-radius:3px; background:rgba(255,255,255,.1); }
+.event-details-grid { display:grid; grid-template-columns:1fr; gap:8px; margin-top:9px; padding:10px; border:0; border-radius:3px; background:rgba(255,255,255,.1); }
 .event-card:hover .event-details-grid { background:rgba(0,0,0,.08); }
 .event-details-grid div { min-width:0; }
 .event-details-grid dt { color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
-.event-details-grid dd { margin:2px 0 0; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.event-details-grid dd { margin:2px 0 0; font-size:11px; line-height:1.5; overflow-wrap:anywhere; white-space:normal; }
 .event-source { display:inline-block; margin-top:9px; color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; text-underline-offset:4px; }
 .empty-state { padding:48px 0; color:var(--subtle); }
 
@@ -124,7 +131,6 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .year-nav b { display:none; }
   .event-results { min-height:600px; padding:29px 18px 65px; }
   .event-month { margin-top:25px; }
-  .event-details-grid { grid-template-columns:1fr; }
   .event-card { grid-template-columns:46px minmax(0,1fr); gap:10px; }
   .event-card time strong { font-size:21px; }
   .event-side { grid-column:2; align-self:auto; }
