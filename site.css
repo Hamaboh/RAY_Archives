@@ -79,6 +79,8 @@ main { max-width:var(--max); margin:auto; }
 .filter-logic-group select:focus { background:var(--white); color:var(--black); }
 .filter-category { min-width:0; padding:21px 24px 24px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
 .filter-category:nth-child(even) { border-right:0; }
+.filter-logic-group + .filter-category { border-right:1px solid var(--line); }
+.filter-logic-group + .filter-category + .filter-category { border-right:0; }
 .filter-category--sets { grid-column:1 / -1; border-right:0; }
 .filter-category header { display:flex; align-items:baseline; gap:10px; margin-bottom:13px; }
 .filter-category header p { margin:0; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.1em; }
@@ -179,6 +181,7 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .filter-logic-group { grid-column:auto; align-items:start; padding:17px 18px; }
   .filter-logic-group select { min-width:0; max-width:145px; }
   .filter-category,.filter-category:nth-child(even),.filter-category--sets { grid-column:auto; padding:19px 18px; border-right:0; }
+  .filter-logic-group + .filter-category,.filter-logic-group + .filter-category + .filter-category { border-right:0; }
   .event-filters { grid-template-columns:1fr; }
   .event-filter-menu { min-width:0; }
   .event-layout { display:block; }
