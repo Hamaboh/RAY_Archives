@@ -3,49 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="アイドルグループRAYの活動記録を階層的にたどるアーカイブ" />
-    <title>RAY Archives — 活動記録</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="description" content="アイドルグループRAYの活動記録を分野ごとに閲覧できるアーカイブ" />
+    <title>RAY Archives</title>
+    <link rel="stylesheet" href="site.css" />
   </head>
-  <body>
-    <a class="skip-link" href="#archive-tree">アーカイブ本文へ移動</a>
+  <body class="home-page">
+    <a class="skip-link" href="#archive-pages">ページ一覧へ移動</a>
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="RAY Archives トップ">RAY <span>ARCHIVES</span></a>
-      <p id="record-total" class="record-total">読み込み中</p>
-      <a class="source-link" href="https://app.notion.com/p/dotstokyo-idol-archive/RAY_Archive-Codex-3b99b75fba958053a405e67018a0ba59?source=copy_link" target="_blank" rel="noreferrer">SOURCE ↗</a>
+      <a class="wordmark" href="./" aria-label="RAY Archives トップ">RAY <span>ARCHIVES</span></a>
+      <nav aria-label="主なページ"><a href="./" aria-current="page">TOP</a><a href="events/">EVENTS</a></nav>
+      <a class="source-link" href="https://github.com/Hamaboh/RAY_Archives" target="_blank" rel="noreferrer">GITHUB ↗</a>
     </header>
-
-    <main id="top">
-      <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">RAY / ACTIVITY ARCHIVE</p>
-        <h1 id="page-title">RAYの記録を、<br />構造ごとたどる。</h1>
-        <p>活動の分類から年・月・各記録へと、元の情報のつながりを保ったまま閲覧できるアーカイブです。見出しを開くと、その下位の記録だけが表示されます。</p>
-      </section>
-
-      <section class="search-panel" aria-label="アーカイブを検索">
-        <label for="archive-search"><span>横断検索</span><input id="archive-search" type="search" autocomplete="off" placeholder="イベント名・楽曲名・人物名などを検索" /></label>
-        <p><kbd>/</kbd> で検索欄へ　<span id="search-status" aria-live="polite">分類を選ぶと階層を表示します</span></p>
-      </section>
-
-      <section class="archive-explorer" aria-label="RAY活動アーカイブ">
-        <aside class="archive-navigation" aria-label="アーカイブの分類">
-          <div class="navigation-heading"><p class="eyebrow">ARCHIVE MAP</p><h2>分類から探す</h2></div>
-          <nav id="category-nav" class="category-nav"></nav>
-          <p class="navigation-help">番号キー <kbd>1</kbd>–<kbd>9</kbd> でも分類を切り替えられます。</p>
-        </aside>
-
-        <section class="tree-panel" aria-labelledby="tree-title">
-          <header class="tree-header">
-            <p id="tree-breadcrumb" class="breadcrumb">RAY ARCHIVES</p>
-            <div><h2 id="tree-title">読み込み中…</h2><p id="tree-description"></p></div>
-          </header>
-          <div id="archive-tree" class="archive-tree" aria-live="polite"></div>
-          <p id="empty-state" class="empty-state" hidden>一致する記録はありません。別の検索語をお試しください。</p>
-        </section>
-      </section>
+    <main>
+      <section class="home-hero" aria-labelledby="page-title"><p class="eyebrow">RAY / ACTIVITY ARCHIVE</p><h1 id="page-title">RAYの活動を、<br /><em>ひとつずつ。</em></h1><p>イベント、楽曲、メディア。活動記録を目的ごとのページに分け、必要な情報に迷わずたどり着けるアーカイブをつくります。</p><a class="primary-link" href="events/">イベント出演情報を見る <span>↓</span></a></section>
+      <section id="archive-pages" class="archive-pages" aria-labelledby="archive-pages-title"><header><p class="eyebrow">ARCHIVE DIRECTORY</p><h2 id="archive-pages-title">ページ一覧</h2><p>現在はイベント出演情報を公開中です。記録の整理に合わせて、閲覧ページを順次追加します。</p></header><div class="page-grid"><a class="page-card page-card--active" href="events/"><span class="page-number">01</span><div><p>EVENT APPEARANCES</p><h3>イベント出演情報</h3><span class="page-card-copy">年・月・キーワードから、出演記録をたどる</span></div><b aria-hidden="true">↗</b></a><article class="page-card page-card--planned"><span class="page-number">02</span><div><p>SONGS</p><h3>楽曲情報</h3><span class="page-card-copy">準備中</span></div></article><article class="page-card page-card--planned"><span class="page-number">03</span><div><p>MEDIA</p><h3>メディア一覧</h3><span class="page-card-copy">準備中</span></div></article></div></section>
     </main>
-
-    <footer><p>RAY ARCHIVES</p><p id="sync-info"></p><a href="https://github.com/Hamaboh/RAY_Archives" target="_blank" rel="noreferrer">GITHUB ↗</a></footer>
-    <script type="module" src="app.js?v=hierarchy-4"></script>
+    <footer><p>RAY ARCHIVES</p><a href="https://github.com/Hamaboh/RAY_Archives" target="_blank" rel="noreferrer">GITHUB ↗</a></footer>
   </body>
 </html>
