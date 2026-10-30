@@ -41,7 +41,7 @@ main { max-width:var(--max); margin:auto; }
 .page-card--planned { opacity:.55; }
 
 .page-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,.47fr); gap:clamp(35px,9vw,145px); align-items:end; padding:clamp(54px,8vw,120px) clamp(18px,8vw,125px) clamp(37px,5vw,70px); background:var(--black); }
-.page-hero h1 { font-size:clamp(49px,7vw,96px); }
+.page-hero h1 { font-size:clamp(30px,3.8vw,52px); line-height:1.02; letter-spacing:-.07em; }
 .page-hero--events h1 { color:var(--white); }
 .hero-copy > p { margin:0; font-size:15px; }
 .event-summary { display:flex; gap:26px; margin:32px 0 0; padding-top:14px; border-top:1px solid var(--line); }
@@ -118,7 +118,7 @@ main { max-width:var(--max); margin:auto; }
 .year-nav b { color:inherit; font:10px "Meiryo UI",Meiryo,sans-serif; }
 .event-results { min-height:740px; padding:32px clamp(18px,5vw,82px) 95px 0; }
 .results-header { padding:0 0 8px; }
-.results-header h2 { margin:0; font:800 clamp(31px,4vw,55px)/1.05 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.075em; }
+.results-header h2 { margin:0; font:800 clamp(25px,2.8vw,39px)/1.08 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.065em; }
 .results-header p:last-child { max-width:580px; margin:14px 0 0; color:var(--subtle); font-size:12px; }
 .event-month { margin-top:31px; }
 .event-month > header { display:flex; align-items:baseline; gap:10px; padding:0 0 5px; }
@@ -128,6 +128,7 @@ main { max-width:var(--max); margin:auto; }
 .event-month > header span { margin-left:auto!important; }
 .event-records { display:grid; gap:5px; margin-top:9px; }
 .event-card { display:grid; grid-template-columns:50px minmax(0,1fr) minmax(180px,.72fr); gap:12px; align-items:start; padding:9px 12px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
+.event-card--one-man { box-shadow:inset 0 0 0 1px rgba(226,76,76,.72); }
 .event-card:hover { background:var(--white); color:var(--black); }
 .event-card time { display:grid; align-content:start; gap:0; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
 .event-card time strong { color:var(--white); font:800 22px/.98 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.08em; }

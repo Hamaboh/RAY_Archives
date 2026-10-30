@@ -34,7 +34,7 @@ function parseDate(value) {
 async function importRows(tsv) {
   const [header, ...rows] = parseTsv(tsv);
   const index = Object.fromEntries(header.map((label, column) => [clean(label), column]));
-  const required = ['延期', '中止', '開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL'];
+  const required = ['延期', '中止', '開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', 'ワンマンライブ'];
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
   const value = (row, label) => clean(row[index[label]]);
@@ -55,6 +55,7 @@ async function importRows(tsv) {
       guests: value(row, '共演者'),
       url: value(row, 'イベントURL'),
       notes: '備考' in index ? noteValue(row) : '',
+      oneMan: isTrue(value(row, 'ワンマンライブ')),
       status: isTrue(value(row, '中止')) ? 'cancelled' : isTrue(value(row, '延期')) ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));
@@ -63,6 +64,11 @@ async function importRows(tsv) {
 }
 
 const server = createServer(async (request, response) => {
+  if (request.method === 'GET' && request.url === '/') {
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end(`<!doctype html><meta charset="utf-8"><title>イベント情報を同期</title><style>body{margin:2rem;background:#111;color:#fff;font-family:Meiryo,sans-serif}textarea{display:block;box-sizing:border-box;width:100%;height:70vh;margin:1rem 0;background:#222;color:#fff;border:1px solid #777;font:12px/1.4 monospace}button{padding:.7rem 1rem;background:#fff;color:#111;border:0;font-weight:bold}#result{margin-top:1rem}</style><h1>イベント情報を同期</h1><p>スプレッドシートからコピーした内容を貼り付けてください。</p><form id="form"><textarea id="tsv" autofocus></textarea><button>サイト用データを更新</button></form><p id="result"></p><script>form.addEventListener('submit',async(e)=>{e.preventDefault();result.textContent='更新中…';const r=await fetch('/import',{method:'POST',body:tsv.value});result.textContent=await r.text();});</script>`);
+    return;
+  }
   if (request.method !== 'POST' || request.url !== '/import') { response.writeHead(404).end(); return; }
   const chunks = [];
   for await (const chunk of request) chunks.push(chunk);

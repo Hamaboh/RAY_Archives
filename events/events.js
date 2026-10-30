@@ -13,6 +13,7 @@ const valueFilters = [
   { key: 'guests', label: '共演者', values: (event) => splitValues(event.guests) },
 ];
 const basicFlagFilters = [
+  { key: 'oneMan', label: 'ワンマンライブ', matches: (event) => event.oneMan === true },
   { key: 'twoMan', label: '2マンライブ', matches: (event) => /【2マンライブ】/.test(event.notes ?? '') },
   { key: 'threeMan', label: '3マンライブ', matches: (event) => /【3マンライブ】/.test(event.notes ?? '') },
   { key: 'collaboration', label: 'コラボ', matches: (event) => /【コラボ】/.test(event.notes ?? '') },
@@ -84,7 +85,8 @@ function performersMarkup(value) {
 }
 function eventMarkup(event) {
   const status = event.status === 'cancelled' ? '<span class="event-status">中止</span>' : event.status === 'postponed' ? '<span class="event-status">延期</span>' : '';
-  return `<article class="event-card"><time datetime="${escapeHtml(event.date)}"><span>${String(event.month).padStart(2, '0')}</span><strong>${String(event.day).padStart(2, '0')}</strong><small>${event.time || 'TIME N/A'}</small></time><div class="event-main"><h3>${escapeHtml(event.title)}${status}</h3>${event.venue ? `<p class="event-venue">${escapeHtml(event.venue)}</p>` : ''}${topicsMarkup(event)}${detailsMarkup(event)}</div><div class="event-side">${performersMarkup(event.performers)}</div></article>`;
+  const oneManClass = event.oneMan ? ' event-card--one-man' : '';
+  return `<article class="event-card${oneManClass}"><time datetime="${escapeHtml(event.date)}"><span>${String(event.month).padStart(2, '0')}</span><strong>${String(event.day).padStart(2, '0')}</strong><small>${event.time || 'TIME N/A'}</small></time><div class="event-main"><h3>${escapeHtml(event.title)}${status}</h3>${event.venue ? `<p class="event-venue">${escapeHtml(event.venue)}</p>` : ''}${topicsMarkup(event)}${detailsMarkup(event)}</div><div class="event-side">${performersMarkup(event.performers)}</div></article>`;
 }
 
 function activeFilterLabels() {
@@ -232,7 +234,7 @@ try {
   events = (await response.json()).events ?? [];
   total.textContent = events.length.toLocaleString('ja-JP');
   yearTotal.textContent = new Set(events.map((event) => event.year)).size.toLocaleString('ja-JP');
-  selectedYear = String(Math.max(...events.map((event) => Number(event.year))));
+  selectedYear = 'all';
   renderFilters();
   bindFilters();
   renderYears();
