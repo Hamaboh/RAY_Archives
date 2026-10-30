@@ -72,11 +72,17 @@ function topicsMarkup(event) {
   if (!topics.length) return '';
   return `<section class="event-topics" aria-label="トピック"><p>TOPICS</p><ul>${topics.map((topic) => `<li>${escapeHtml(inline(topic).replace(/,\s*$/, ''))}</li>`).join('')}</ul></section>`;
 }
+function detailValueMarkup(label, value) {
+  const prepared = label === '予約特典'
+    ? normalise(value).replace(/,\s*/g, ',\n')
+    : inline(value);
+  return escapeHtml(prepared).replace(/\n/g, '<br />');
+}
 function detailsMarkup(event) {
   const { price } = notesFor(event);
   const details = [['会場', event.venue], ['予約特典', event.benefit], ['料金', price], ['出演者', event.performers], ['衣装', event.outfit], ['共演者', event.guests]].filter(([, value]) => value && value !== '-');
   if (!details.length && !event.url) return '';
-  return `<details class="event-details"><summary>詳細を見る</summary><div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(inline(value))}</dd></div>`).join('')}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}</details>`;
+  return `<details class="event-details"><summary>詳細を見る</summary><div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValueMarkup(label, value)}</dd></div>`).join('')}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}</details>`;
 }
 function performersMarkup(value) {
   const performers = splitValues(value);
