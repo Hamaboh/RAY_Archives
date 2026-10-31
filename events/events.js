@@ -99,7 +99,7 @@ function setlistHeadingMarkup({ type, form }) {
   const kind = inline(type);
   const format = inline(form);
   const visibleFormat = format && format !== '-' && format !== 'RAY' ? format : '';
-  const kindMarkup = kind && kind !== '-' ? `<span class="setlist-kind">【${escapeHtml(kind)}】</span>` : '';
+  const kindMarkup = kind && kind !== '-' ? `<span class="setlist-kind">${escapeHtml(kind)}</span>` : '';
   const formMarkup = visibleFormat ? `<span class="setlist-form">${escapeHtml(visibleFormat)}</span>` : '';
   return kindMarkup || formMarkup ? `<p class="setlist-type">${kindMarkup}${formMarkup}</p>` : '';
 }
