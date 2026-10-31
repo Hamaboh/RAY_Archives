@@ -143,7 +143,7 @@ function performersMarkup(value) {
 function eventMarkup(event) {
   const status = event.status === 'cancelled' ? '<span class="event-status">中止</span>' : event.status === 'postponed' ? '<span class="event-status">延期</span>' : '';
   const oneManClass = event.oneMan ? ' event-card--one-man' : '';
-  return `<article class="event-card${oneManClass}"><time datetime="${escapeHtml(event.date)}"><span>${String(event.month).padStart(2, '0')}</span><strong>${String(event.day).padStart(2, '0')}</strong><small>${event.time || 'TIME N/A'}</small></time><div class="event-main"><h3>${escapeHtml(event.title)}${status}</h3>${event.venue ? `<p class="event-venue">${escapeHtml(event.venue)}</p>` : ''}${topicsMarkup(event)}${detailsMarkup(event)}</div><div class="event-side">${performersMarkup(event.performers)}</div></article>`;
+  return `<article class="event-card${oneManClass}"><time datetime="${escapeHtml(event.date)}"><span>${String(event.month).padStart(2, '0')}</span><strong>${String(event.day).padStart(2, '0')}</strong><small>${event.time || 'TIME N/A'}</small></time><div class="event-main"><div class="event-card-summary"><div><h3>${escapeHtml(event.title)}${status}</h3>${event.venue ? `<p class="event-venue">${escapeHtml(event.venue)}</p>` : ''}</div>${performersMarkup(event.performers)}</div>${topicsMarkup(event)}${detailsMarkup(event)}</div></article>`;
 }
 
 function activeFilterLabels() {

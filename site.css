@@ -127,16 +127,16 @@ main { max-width:var(--max); margin:auto; }
 .event-month > header h3 { font:800 23px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.06em; }
 .event-month > header span { margin-left:auto!important; }
 .event-records { display:grid; gap:5px; margin-top:9px; }
-.event-card { display:grid; grid-template-columns:50px minmax(0,1fr) minmax(82px,.12fr); gap:12px; align-items:start; padding:9px 12px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
+.event-card { display:grid; grid-template-columns:50px minmax(0,1fr); gap:12px; align-items:start; padding:9px 12px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
 .event-card--one-man { box-shadow:inset 0 0 0 1px rgba(226,76,76,.72); }
 .event-card:hover { background:var(--white); color:var(--black); }
 .event-card time { display:grid; align-content:start; gap:0; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
 .event-card time strong { color:var(--white); font:800 22px/.98 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.08em; }
 .event-card:hover time,.event-card:hover time strong,.event-card:hover .event-venue { color:var(--black); }
 .event-card time small { margin-top:2px; font:9px "Meiryo UI",Meiryo,sans-serif; }
+.event-card-summary { display:grid; grid-template-columns:minmax(0,1fr) minmax(82px,.12fr); gap:12px; align-items:center; }
 .event-main h3 { margin:0; font:700 14px/1.4 "Meiryo UI",Meiryo,sans-serif; }
 .event-venue { margin:1px 0 0; color:var(--subtle); font-size:11px; line-height:1.35; }
-.event-side { align-self:center; min-width:0; }
 .event-performers { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px; margin:0; padding:0; list-style:none; }
 .event-performers li { max-width:100%; padding:2px 5px; border:1px solid rgba(255,255,255,.34); border-radius:2px; color:var(--subtle); font-size:10px; line-height:1.25; overflow-wrap:anywhere; }
 .event-card:hover .event-performers li { border-color:rgba(0,0,0,.42); color:var(--black); }
@@ -207,7 +207,7 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .event-month { margin-top:25px; }
   .event-card { grid-template-columns:46px minmax(0,1fr); gap:10px; }
   .event-card time strong { font-size:21px; }
-  .event-side { grid-column:2; align-self:auto; }
+  .event-card-summary { grid-template-columns:1fr; gap:5px; }
   .event-performers { justify-content:flex-start; }
   .event-detail-content--with-setlist { grid-template-columns:1fr; }
   footer { display:block; }
