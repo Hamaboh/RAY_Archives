@@ -34,7 +34,7 @@ function parseDate(value) {
 async function importRows(tsv) {
   const [header, ...rows] = parseTsv(tsv);
   const index = Object.fromEntries(header.map((label, column) => [clean(label), column]));
-  const required = ['延期', '中止', '開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', 'ワンマンライブ'];
+  const required = ['延期', '中止', '開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', 'ワンマンライブ', '生誕イベント / プロデュース公演'];
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
   const value = (row, label) => clean(row[index[label]]);
@@ -56,6 +56,7 @@ async function importRows(tsv) {
       url: value(row, 'イベントURL'),
       notes: '備考' in index ? noteValue(row) : '',
       oneMan: isTrue(value(row, 'ワンマンライブ')),
+      ...(isTrue(value(row, '生誕イベント / プロデュース公演')) ? { birthdayOrProduced: true } : {}),
       status: isTrue(value(row, '中止')) ? 'cancelled' : isTrue(value(row, '延期')) ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));

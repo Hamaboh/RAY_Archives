@@ -35,7 +35,7 @@ const specialSetFilters = [
   { key: 'rayphexTwin', label: 'RAYPHEX TWIN（RAY IDM SET）', matches: (event) => /RAYPHEX TWIN|RAY IDM SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
 ];
 const seriesFlagFilters = [
-  { key: 'birthdayOrProduced', label: '生誕イベント / プロデュース公演', matches: (event) => /生誕|誕生|birthday|バースデー|プロデュース/i.test(event.title) },
+  { key: 'birthdayOrProduced', label: '生誕イベント / プロデュース公演', matches: (event) => event.birthdayOrProduced === true },
   { key: 'extrome', label: 'エクストロメ', matches: (event) => /エクストロメ/.test(`${event.title}\n${event.notes ?? ''}`) },
   { key: 'totalFeedback', label: 'Total Feedback', matches: (event) => /Total Feedback/i.test(`${event.title}\n${event.notes ?? ''}`) },
   { key: 'predawn', label: 'PREDAWN', matches: (event) => /PREDAWN/i.test(`${event.title}\n${event.notes ?? ''}`) },
