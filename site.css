@@ -127,7 +127,7 @@ main { max-width:var(--max); margin:auto; }
 .event-month > header h3 { font:800 23px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.06em; }
 .event-month > header span { margin-left:auto!important; }
 .event-records { display:grid; gap:5px; margin-top:9px; }
-.event-card { display:grid; grid-template-columns:50px minmax(0,1fr) minmax(180px,.72fr); gap:12px; align-items:start; padding:9px 12px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
+.event-card { display:grid; grid-template-columns:50px minmax(0,1fr) minmax(82px,.12fr); gap:12px; align-items:start; padding:9px 12px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
 .event-card--one-man { box-shadow:inset 0 0 0 1px rgba(226,76,76,.72); }
 .event-card:hover { background:var(--white); color:var(--black); }
 .event-card time { display:grid; align-content:start; gap:0; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
@@ -164,6 +164,8 @@ main { max-width:var(--max); margin:auto; }
 .setlist-group + .setlist-group { margin-top:10px; padding-top:9px; border-top:1px solid rgba(255,255,255,.16); }
 .event-card:hover .setlist-group + .setlist-group { border-color:rgba(0,0,0,.16); }
 .setlist-type { margin:0; font-size:10px; font-weight:700; line-height:1.45; overflow-wrap:anywhere; }
+.setlist-form { margin-left:4px; color:rgba(255,255,255,.58); font-size:9px; font-weight:400; letter-spacing:0; }
+.event-card:hover .setlist-form { color:#454545; }
 .setlist-tracks { display:grid; gap:2px; margin:5px 0 0; padding:0; list-style:none; }
 .setlist-tracks li { display:grid; grid-template-columns:18px minmax(0,1fr); gap:5px; align-items:baseline; font-size:10px; line-height:1.45; }
 .setlist-tracks b { color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; text-align:right; }

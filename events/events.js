@@ -82,8 +82,9 @@ function setlistHeadingMarkup({ type, form }) {
   const kind = inline(type);
   const format = inline(form);
   const visibleFormat = format && format !== '-' && format !== 'RAY' ? format : '';
-  const text = `${kind && kind !== '-' ? `【${kind}】` : ''}${visibleFormat}`;
-  return text ? `<p class="setlist-type">${escapeHtml(text)}</p>` : '';
+  const kindMarkup = kind && kind !== '-' ? `<span class="setlist-kind">【${escapeHtml(kind)}】</span>` : '';
+  const formMarkup = visibleFormat ? `<span class="setlist-form">${escapeHtml(visibleFormat)}</span>` : '';
+  return kindMarkup || formMarkup ? `<p class="setlist-type">${kindMarkup}${formMarkup}</p>` : '';
 }
 function setlistGroups(rows) {
   const groups = new Map();
