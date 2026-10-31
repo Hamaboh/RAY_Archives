@@ -150,7 +150,7 @@ main { max-width:var(--max); margin:auto; }
 .event-card:hover .event-topics p,.event-card:hover .event-topics li { color:var(--black); }
 .event-details { margin-top:3px; }
 .event-details summary { width:max-content; color:var(--white); cursor:pointer; font-size:10px; text-decoration:underline; text-underline-offset:3px; }
-.event-card:hover .event-details summary,.event-card:hover .event-source,.event-card:hover .event-details-grid dt,.event-card:hover .setlist-heading,.event-card:hover .setlist-meta { color:var(--black); }
+.event-card:hover .event-details summary,.event-card:hover .event-source,.event-card:hover .event-details-grid dt,.event-card:hover .setlist-heading,.event-card:hover .setlist-tracks b { color:var(--black); }
 .event-detail-content { margin-top:9px; }
 .event-detail-content--with-setlist { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; align-items:start; }
 .event-details-grid,.event-setlists { min-width:0; padding:10px; border:0; border-radius:3px; background:rgba(255,255,255,.1); }
@@ -164,7 +164,6 @@ main { max-width:var(--max); margin:auto; }
 .setlist-group + .setlist-group { margin-top:10px; padding-top:9px; border-top:1px solid rgba(255,255,255,.16); }
 .event-card:hover .setlist-group + .setlist-group { border-color:rgba(0,0,0,.16); }
 .setlist-type { margin:0; font-size:10px; font-weight:700; line-height:1.45; overflow-wrap:anywhere; }
-.setlist-meta { margin:2px 0 0; color:var(--subtle); font-size:9px; line-height:1.45; overflow-wrap:anywhere; }
 .setlist-tracks { display:grid; gap:2px; margin:5px 0 0; padding:0; list-style:none; }
 .setlist-tracks li { display:grid; grid-template-columns:18px minmax(0,1fr); gap:5px; align-items:baseline; font-size:10px; line-height:1.45; }
 .setlist-tracks b { color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; text-align:right; }

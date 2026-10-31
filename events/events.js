@@ -78,9 +78,12 @@ function detailValueMarkup(label, value) {
     : inline(value);
   return escapeHtml(prepared).replace(/\n/g, '<br />');
 }
-function setlistMetaMarkup({ artist, form }) {
-  const values = [...new Set([artist, form].map(inline).filter((value) => value && value !== '-' && value !== 'RAY'))];
-  return values.length ? `<p class="setlist-meta">${values.map(escapeHtml).join(' / ')}</p>` : '';
+function setlistHeadingMarkup({ type, form }) {
+  const kind = inline(type);
+  const format = inline(form);
+  const visibleFormat = format && format !== '-' && format !== 'RAY' ? format : '';
+  const text = `${kind && kind !== '-' ? `【${kind}】` : ''}${visibleFormat}`;
+  return text ? `<p class="setlist-type">${escapeHtml(text)}</p>` : '';
 }
 function setlistGroups(rows) {
   const groups = new Map();
@@ -105,7 +108,7 @@ function setlistGroups(rows) {
 function setlistMarkup(event) {
   const rows = event.setlists ?? [];
   if (!rows.length) return '';
-  return `<section class="event-setlists" aria-label="セットリスト"><p class="setlist-heading">SETLIST</p>${setlistGroups(rows).map((group) => `<section class="setlist-group">${group.type && group.type !== '-' ? `<p class="setlist-type">【${escapeHtml(group.type)}】</p>` : ''}${setlistMetaMarkup(group)}<ol class="setlist-tracks">${group.tracks.map((track) => `<li>${track.order ? `<b>${escapeHtml(track.order)}</b>` : '<b aria-hidden="true">–</b>'}<span>${escapeHtml(track.song)}</span></li>`).join('')}</ol></section>`).join('')}</section>`;
+  return `<section class="event-setlists" aria-label="セットリスト"><p class="setlist-heading">SETLIST</p>${setlistGroups(rows).map((group) => `<section class="setlist-group">${setlistHeadingMarkup(group)}<ol class="setlist-tracks">${group.tracks.map((track) => `<li>${track.order ? `<b>${escapeHtml(track.order)}</b>` : '<b aria-hidden="true">–</b>'}<span>${escapeHtml(track.song)}</span></li>`).join('')}</ol></section>`).join('')}</section>`;
 }
 function detailsMarkup(event) {
   const { price } = notesFor(event);
