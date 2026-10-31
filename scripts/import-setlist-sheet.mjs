@@ -21,7 +21,7 @@ function parseTsv(input) {
   return rows;
 }
 
-function clean(value) { return String(value ?? '').replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function clean(value) { return String(value ?? '').replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim().replaceAll('紬実氏', '紬実詩'); }
 function dateKey(value) {
   const japanese = clean(value).match(/^(\d{4})年(\d{1,2})月(\d{1,2})日(?:(\d{1,2})時(?:(\d{1,2})分)?)?$/);
   const numeric = clean(value).match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::\d{2})?)?$/);

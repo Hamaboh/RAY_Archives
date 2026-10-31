@@ -1,5 +1,6 @@
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
+const canonicaliseText = (value) => String(value ?? '').replaceAll('紬実氏', '紬実詩');
 const normalise = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const inline = (value) => normalise(value).replace(/,\s+/g, ', ');
 const splitValues = (value) => String(value ?? '').split(/,\s*/).map((item) => item.trim()).filter((item) => item && item !== '-');
@@ -49,6 +50,22 @@ const filterState = Object.fromEntries(valueFilters.map(({ key }) => [key, new S
 Object.assign(filterState, Object.fromEntries(flagFilters.map(({ key }) => [key, 'all'])));
 const valueLogic = Object.fromEntries(valueFilters.map(({ key }) => [key, 'or']));
 const filterOptions = {};
+
+function canonicaliseEvent(event) {
+  const corrected = { ...event };
+  ['title', 'venue', 'benefit', 'price', 'drink', 'performers', 'outfit', 'guests', 'url', 'notes'].forEach((field) => {
+    corrected[field] = canonicaliseText(event[field]);
+  });
+  corrected.setlists = (event.setlists ?? []).map((setlist) => ({
+    ...setlist,
+    artist: canonicaliseText(setlist.artist),
+    form: canonicaliseText(setlist.form),
+    type: canonicaliseText(setlist.type),
+    order: canonicaliseText(setlist.order),
+    song: canonicaliseText(setlist.song),
+  }));
+  return corrected;
+}
 
 function notesFor(event) {
   const lines = String(event.notes ?? '').replace(/\r\n?/g, '\n').split('\n').map((line) => line.trim()).filter(Boolean);
@@ -271,7 +288,7 @@ function renderEvents() {
 
 try {
   const response = await fetch('../data/events.json', { cache: 'no-cache' }); if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  events = (await response.json()).events ?? [];
+  events = ((await response.json()).events ?? []).map(canonicaliseEvent);
   total.textContent = events.length.toLocaleString('ja-JP');
   yearTotal.textContent = new Set(events.map((event) => event.year)).size.toLocaleString('ja-JP');
   selectedYear = 'all';

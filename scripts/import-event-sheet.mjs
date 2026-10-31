@@ -21,7 +21,7 @@ function parseTsv(input) {
   return rows;
 }
 
-function clean(value) { return String(value ?? '').replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function clean(value) { return String(value ?? '').replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim().replaceAll('紬実氏', '紬実詩'); }
 function isTrue(value) { return /^true$/i.test(clean(value)); }
 function parseDate(value) {
   const match = clean(value).match(/^(\d{4})年(\d{1,2})月(\d{1,2})日(?:(\d{1,2})時(?:(\d{1,2})分)?)?$/);
@@ -38,7 +38,7 @@ async function importRows(tsv) {
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
   const value = (row, label) => clean(row[index[label]]);
-  const noteValue = (row) => String(row[index['備考']] ?? '').replace(/\r\n?/g, '\n').trim();
+  const noteValue = (row) => String(row[index['備考']] ?? '').replace(/\r\n?/g, '\n').trim().replaceAll('紬実氏', '紬実詩');
   const events = rows.map((row) => {
     const base = parseDate(value(row, '開催日時'));
     const title = value(row, '公演名');
