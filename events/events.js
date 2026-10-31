@@ -78,11 +78,41 @@ function detailValueMarkup(label, value) {
     : inline(value);
   return escapeHtml(prepared).replace(/\n/g, '<br />');
 }
+function setlistMetaMarkup({ artist, form }) {
+  const values = [...new Set([artist, form].map(inline).filter((value) => value && value !== '-' && value !== 'RAY'))];
+  return values.length ? `<p class="setlist-meta">${values.map(escapeHtml).join(' / ')}</p>` : '';
+}
+function setlistGroups(rows) {
+  const groups = new Map();
+  rows.forEach((row, index) => {
+    const type = inline(row.type);
+    const artist = inline(row.artist);
+    const form = inline(row.form);
+    const key = [type, artist, form].join('\u0000');
+    if (!groups.has(key)) groups.set(key, { type, artist, form, index, tracks: [] });
+    groups.get(key).tracks.push(row);
+  });
+  return [...groups.values()].sort((a, b) => a.index - b.index).map((group) => ({
+    ...group,
+    tracks: group.tracks.slice().sort((a, b) => {
+      const first = Number.parseFloat(a.order), second = Number.parseFloat(b.order);
+      const firstOrder = Number.isFinite(first) ? first : Number.MAX_SAFE_INTEGER;
+      const secondOrder = Number.isFinite(second) ? second : Number.MAX_SAFE_INTEGER;
+      return firstOrder - secondOrder;
+    }),
+  }));
+}
+function setlistMarkup(event) {
+  const rows = event.setlists ?? [];
+  if (!rows.length) return '';
+  return `<section class="event-setlists" aria-label="セットリスト"><p class="setlist-heading">SETLIST</p>${setlistGroups(rows).map((group) => `<section class="setlist-group">${group.type && group.type !== '-' ? `<p class="setlist-type">【${escapeHtml(group.type)}】</p>` : ''}${setlistMetaMarkup(group)}<ol class="setlist-tracks">${group.tracks.map((track) => `<li>${track.order ? `<b>${escapeHtml(track.order)}</b>` : '<b aria-hidden="true">–</b>'}<span>${escapeHtml(track.song)}</span></li>`).join('')}</ol></section>`).join('')}</section>`;
+}
 function detailsMarkup(event) {
   const { price } = notesFor(event);
   const details = [['会場', event.venue], ['予約特典', event.benefit], ['料金', price], ['出演者', event.performers], ['衣装', event.outfit], ['共演者', event.guests]].filter(([, value]) => value && value !== '-');
-  if (!details.length && !event.url) return '';
-  return `<details class="event-details"><summary>詳細を見る</summary><div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValueMarkup(label, value)}</dd></div>`).join('')}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}</details>`;
+  const setlist = setlistMarkup(event);
+  if (!details.length && !event.url && !setlist) return '';
+  return `<details class="event-details"><summary>詳細を見る</summary><div class="event-detail-content${details.length && setlist ? ' event-detail-content--with-setlist' : ''}">${details.length ? `<div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValueMarkup(label, value)}</dd></div>`).join('')}</div>` : ''}${setlist}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}</details>`;
 }
 function performersMarkup(value) {
   const performers = splitValues(value);
