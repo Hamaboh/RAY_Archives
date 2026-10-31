@@ -2,6 +2,20 @@ import { createServer } from 'node:http';
 import { writeFile } from 'node:fs/promises';
 
 const outputPath = new URL('../data/events.json', import.meta.url);
+const flagColumns = {
+  '延期': 'postponed',
+  '中止': 'cancelled',
+  '主催': 'hosted',
+  'ワンマンライブ': 'oneMan',
+  '2マンライブ': 'twoMan',
+  '3マンライブ': 'threeMan',
+  'コラボ': 'collaboration',
+  '生誕イベント / プロデュース公演': 'birthdayOrProduced',
+  'エクストロメ': 'extrome',
+  '特殊セット': 'specialSet',
+  'Total Feedback': 'totalFeedback',
+  'RAY Acoustic Set': 'acousticSet',
+};
 
 function parseTsv(input) {
   const rows = [];
@@ -34,7 +48,7 @@ function parseDate(value) {
 async function importRows(tsv) {
   const [header, ...rows] = parseTsv(tsv);
   const index = Object.fromEntries(header.map((label, column) => [clean(label), column]));
-  const required = ['延期', '中止', '開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', 'ワンマンライブ', '生誕イベント / プロデュース公演'];
+  const required = ['開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', '備考', ...Object.keys(flagColumns)];
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
   const value = (row, label) => clean(row[index[label]]);
@@ -43,6 +57,9 @@ async function importRows(tsv) {
     const base = parseDate(value(row, '開催日時'));
     const title = value(row, '公演名');
     if (!base || !title) return null;
+    const flags = Object.fromEntries(Object.entries(flagColumns)
+      .filter(([label]) => isTrue(value(row, label)))
+      .map(([, key]) => [key, true]));
     return {
       ...base,
       title,
@@ -55,9 +72,8 @@ async function importRows(tsv) {
       guests: value(row, '共演者'),
       url: value(row, 'イベントURL'),
       notes: '備考' in index ? noteValue(row) : '',
-      oneMan: isTrue(value(row, 'ワンマンライブ')),
-      ...(isTrue(value(row, '生誕イベント / プロデュース公演')) ? { birthdayOrProduced: true } : {}),
-      status: isTrue(value(row, '中止')) ? 'cancelled' : isTrue(value(row, '延期')) ? 'postponed' : '',
+      ...flags,
+      status: flags.cancelled ? 'cancelled' : flags.postponed ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));
   await writeFile(outputPath, `${JSON.stringify({ source: 'Google スプレッドシート「イベント出演情報」', sourceSyncedAt: new Date().toISOString(), events })}\n`, 'utf8');

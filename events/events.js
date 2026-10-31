@@ -15,35 +15,21 @@ const valueFilters = [
 ];
 const basicFlagFilters = [
   { key: 'oneMan', label: 'ワンマンライブ', matches: (event) => event.oneMan === true },
-  { key: 'twoMan', label: '2マンライブ', matches: (event) => /【2マンライブ】/.test(event.notes ?? '') },
-  { key: 'threeMan', label: '3マンライブ', matches: (event) => /【3マンライブ】/.test(event.notes ?? '') },
-  { key: 'collaboration', label: 'コラボ', matches: (event) => /【コラボ】/.test(event.notes ?? '') },
-  { key: 'hosted', label: '主催', matches: (event) => /(?:presents|主催)/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'postponed', label: '延期', matches: (event) => event.status === 'postponed' },
-  { key: 'cancelled', label: '中止', matches: (event) => event.status === 'cancelled' },
+  { key: 'twoMan', label: '2マンライブ', matches: (event) => event.twoMan === true },
+  { key: 'threeMan', label: '3マンライブ', matches: (event) => event.threeMan === true },
+  { key: 'collaboration', label: 'コラボ', matches: (event) => event.collaboration === true },
+  { key: 'hosted', label: '主催', matches: (event) => event.hosted === true },
+  { key: 'postponed', label: '延期', matches: (event) => event.postponed === true },
+  { key: 'cancelled', label: '中止', matches: (event) => event.cancelled === true },
 ];
 const specialSetFilters = [
-  { key: 'specialSet', label: '特殊セット（全般）', matches: (event) => /(?:考案)?セットリスト|特殊セット|RAY Acoustic Set|RAY BAND ?SET|RAY FEEDBACK SET|RAY Percussion Set|RAYCHANZWERK SET|EXPERIMENTAL VJ SET|RAY GROOVE SET|RAY MOSH SET|RAYPHEX TWIN|RAY IDM SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'acousticSet', label: 'RAY Acoustic Set', matches: (event) => /RAY Acoustic Set/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'bandSet', label: 'RAY BAND SET', matches: (event) => /RAY BAND ?SET|IDOLBANDSET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'feedbackSet', label: 'RAY FEEDBACK SET', matches: (event) => /RAY FEEDBACK SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'percussionSet', label: 'RAY Percussion Set', matches: (event) => /RAY Percussion Set/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'chanzwerkSet', label: 'RAYCHANZWERK SET', matches: (event) => /RAYCHANZWERK SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'experimentalVjSet', label: 'EXPERIMENTAL VJ SET', matches: (event) => /EXPERIMENTAL VJ SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'grooveSet', label: 'RAY GROOVE SET', matches: (event) => /RAY GROOVE SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'moshSet', label: 'RAY MOSH SET', matches: (event) => /RAY MOSH SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'rayphexTwin', label: 'RAYPHEX TWIN（RAY IDM SET）', matches: (event) => /RAYPHEX TWIN|RAY IDM SET/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'specialSet', label: '特殊セット（全般）', matches: (event) => event.specialSet === true },
+  { key: 'acousticSet', label: 'RAY Acoustic Set', matches: (event) => event.acousticSet === true },
 ];
 const seriesFlagFilters = [
   { key: 'birthdayOrProduced', label: '生誕イベント / プロデュース公演', matches: (event) => event.birthdayOrProduced === true },
-  { key: 'extrome', label: 'エクストロメ', matches: (event) => /エクストロメ/.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'totalFeedback', label: 'Total Feedback', matches: (event) => /Total Feedback/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'predawn', label: 'PREDAWN', matches: (event) => /PREDAWN/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'neighbor', label: 'RAY presents「Neighbor?」', matches: (event) => /RAY presents「Neighbor\?/.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'relationship', label: 'RAY presents「Relationship」', matches: (event) => /RAY presents「Relationship/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'tieInReaction', label: '内山結愛 presents「tie in reaction」', matches: (event) => /tie in reaction/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'atmosphere', label: 'RAY/代代代/クロスノエシス 3WAY SPLIT『ATMOSPHERE』ALMOST TRANSPARENT', matches: (event) => /ATMOSPHERE|ALMOST TRANSPARENT/i.test(`${event.title}\n${event.notes ?? ''}`) },
-  { key: 'noMyWay', label: 'RAY×BELLRING少女ハート SPLIT TOUR NO MY WAY', matches: (event) => /NO MY WAY/i.test(`${event.title}\n${event.notes ?? ''}`) },
+  { key: 'extrome', label: 'エクストロメ', matches: (event) => event.extrome === true },
+  { key: 'totalFeedback', label: 'Total Feedback', matches: (event) => event.totalFeedback === true },
 ];
 const flagFilters = [...basicFlagFilters, ...seriesFlagFilters, ...specialSetFilters];
 const filterState = Object.fromEntries(valueFilters.map(({ key }) => [key, new Set()]));
@@ -69,20 +55,29 @@ function canonicaliseEvent(event) {
 
 function notesFor(event) {
   const lines = String(event.notes ?? '').replace(/\r\n?/g, '\n').split('\n').map((line) => line.trim()).filter(Boolean);
-  const topics = [], priceDetails = [];
-  let inPriceDetails = false;
+  const topics = [], priceDetails = [], purchaseBenefits = [];
+  let section = '';
   lines.forEach((line) => {
     if (line.includes('【料金詳細】')) {
-      inPriceDetails = true;
+      section = 'price';
       const value = line.replace('【料金詳細】', '').trim();
       if (value) priceDetails.push(value);
       return;
     }
-    if (inPriceDetails && line.startsWith('・')) { priceDetails.push(line); return; }
-    inPriceDetails = false;
+    if (/^【[^】]*購入特典】/.test(line)) {
+      section = 'purchase';
+      return;
+    }
+    if (section === 'price' && line.startsWith('・')) { priceDetails.push(line); return; }
+    if (section === 'purchase' && line.startsWith('・')) { purchaseBenefits.push(line); return; }
+    section = '';
     topics.push(line);
   });
-  return { topics, price: priceDetails.length ? priceDetails.map((value) => value.replace(/^・/, '').replace(/,\s*$/, '')).join(' / ') : event.price };
+  return {
+    topics,
+    price: priceDetails.length ? priceDetails.map((value) => value.replace(/^・/, '').replace(/,\s*$/, '')).join(' / ') : event.price,
+    purchaseBenefits: purchaseBenefits.map((value) => value.replace(/^・/, '').replace(/,\s*$/, '')),
+  };
 }
 function topicsMarkup(event) {
   const { topics } = notesFor(event);
@@ -128,12 +123,16 @@ function setlistMarkup(event) {
   if (!rows.length) return '';
   return `<section class="event-setlists" aria-label="セットリスト"><p class="setlist-heading">SETLIST</p>${setlistGroups(rows).map((group) => `<section class="setlist-group">${setlistHeadingMarkup(group)}<ol class="setlist-tracks">${group.tracks.map((track) => `<li>${track.order ? `<b>${escapeHtml(track.order)}</b>` : '<b aria-hidden="true">–</b>'}<span>${escapeHtml(track.song)}</span></li>`).join('')}</ol></section>`).join('')}</section>`;
 }
+function purchaseBenefitsMarkup(values) {
+  if (!values.length) return '';
+  return `<section class="event-purchase-benefits" aria-label="購入特典"><p>購入特典</p><ul>${values.map((value) => `<li>${escapeHtml(inline(value))}</li>`).join('')}</ul></section>`;
+}
 function detailsMarkup(event) {
-  const { price } = notesFor(event);
+  const { price, purchaseBenefits } = notesFor(event);
   const details = [['会場', event.venue], ['予約特典', event.benefit], ['料金', price], ['出演者', event.performers], ['衣装', event.outfit], ['共演者', event.guests]].filter(([, value]) => value && value !== '-');
   const setlist = setlistMarkup(event);
-  if (!details.length && !event.url && !setlist) return '';
-  return `<details class="event-details"><summary>詳細を見る</summary><div class="event-detail-content${details.length && setlist ? ' event-detail-content--with-setlist' : ''}">${details.length ? `<div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValueMarkup(label, value)}</dd></div>`).join('')}</div>` : ''}${setlist}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}</details>`;
+  if (!details.length && !event.url && !setlist && !purchaseBenefits.length) return '';
+  return `<details class="event-details"><summary>詳細を見る</summary><div class="event-detail-content${details.length && setlist ? ' event-detail-content--with-setlist' : ''}">${details.length ? `<div class="event-details-grid">${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValueMarkup(label, value)}</dd></div>`).join('')}</div>` : ''}${setlist}</div>${event.url ? `<a class="event-source" href="${escapeHtml(event.url)}" target="_blank" rel="noreferrer">イベントURLを開く ↗</a>` : ''}${purchaseBenefitsMarkup(purchaseBenefits)}</details>`;
 }
 function performersMarkup(value) {
   const performers = splitValues(value);

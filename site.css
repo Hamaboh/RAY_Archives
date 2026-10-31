@@ -171,6 +171,12 @@ main { max-width:var(--max); margin:auto; }
 .setlist-tracks b { color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; text-align:right; }
 .setlist-tracks span { min-width:0; overflow-wrap:anywhere; }
 .event-source { display:inline-block; margin-top:9px; color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; text-underline-offset:4px; }
+.event-purchase-benefits { margin-top:10px; padding:10px; border-radius:3px; background:rgba(255,255,255,.1); }
+.event-purchase-benefits p { margin:0 0 5px; color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.1em; }
+.event-purchase-benefits ul { display:grid; gap:3px; margin:0; padding:0; list-style:none; }
+.event-purchase-benefits li { color:var(--white); font-size:10px; line-height:1.45; overflow-wrap:anywhere; }
+.event-card:hover .event-purchase-benefits { background:rgba(0,0,0,.08); }
+.event-card:hover .event-purchase-benefits p,.event-card:hover .event-purchase-benefits li { color:var(--black); }
 .empty-state { padding:48px 0; color:var(--subtle); }
 
 footer { display:flex; justify-content:space-between; gap:20px; padding:20px clamp(18px,4vw,60px); border-top:1px solid var(--white); background:var(--black); color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; }
