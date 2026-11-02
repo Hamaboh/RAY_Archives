@@ -8,28 +8,43 @@ const monthFormatter = new Intl.DateTimeFormat('ja-JP', { month: 'long' });
 const total = $('#event-total'), yearTotal = $('#year-total'), yearNav = $('#year-nav'), filterPanel = $('#event-filters'), filterStatus = $('#filter-status'), resetFilters = $('#reset-filters'), openFilters = $('#open-filters'), filterCount = $('#filter-count'), filterDialog = $('#event-filter-dialog'), closeFilters = $('#close-filters'), list = $('#event-list'), title = $('#results-title'), kicker = $('#results-kicker'), description = $('#results-description'), empty = $('#empty-state');
 let events = [], selectedYear = 'all', filterLogic = 'and';
 
+const performerOptions = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '月日', '琴山しずく', '愛海', '月海まお', '紬実詩', '春音友希', '大黒メロンちゃん', 'ねりね', 'ﾐﾔﾊﾗｸﾝ', '江頭'];
+const outfitOptions = ['1st衣装', '2nd衣装', '3rd衣装', '4th衣装', '5th衣装', '6th衣装', '7th衣装', '8th衣装'];
 const valueFilters = [
   { key: 'venue', label: '会場', values: (event) => splitValues(event.venue) },
-  { key: 'performers', label: '出演者', values: (event) => splitValues(event.performers) },
-  { key: 'guests', label: '共演者', values: (event) => splitValues(event.guests) },
+  { key: 'performers', label: '出演者', values: (event) => splitValues(event.performers), options: performerOptions },
+  { key: 'outfit', label: '衣装', values: (event) => splitValues(event.outfit), options: outfitOptions },
 ];
 const basicFlagFilters = [
+  { key: 'travel', label: '遠征', matches: (event) => event.travel === true },
+  { key: 'hosted', label: '主催', matches: (event) => event.hosted === true },
   { key: 'oneMan', label: 'ワンマンライブ', matches: (event) => event.oneMan === true },
   { key: 'twoMan', label: '2マンライブ', matches: (event) => event.twoMan === true },
   { key: 'threeMan', label: '3マンライブ', matches: (event) => event.threeMan === true },
   { key: 'collaboration', label: 'コラボ', matches: (event) => event.collaboration === true },
-  { key: 'hosted', label: '主催', matches: (event) => event.hosted === true },
-  { key: 'postponed', label: '延期', matches: (event) => event.postponed === true },
-  { key: 'cancelled', label: '中止', matches: (event) => event.cancelled === true },
+  { key: 'birthdayOrProduced', label: '生誕イベント / プロデュース公演', matches: (event) => event.birthdayOrProduced === true },
 ];
 const specialSetFilters = [
-  { key: 'specialSet', label: '特殊セット（全般）', matches: (event) => event.specialSet === true },
+  { key: 'specialSet', label: '特殊セット', matches: (event) => event.specialSet === true },
   { key: 'acousticSet', label: 'RAY Acoustic Set', matches: (event) => event.acousticSet === true },
+  { key: 'bandSet', label: 'RAY BAND SET', matches: (event) => event.bandSet === true },
+  { key: 'feedbackSet', label: 'RAY FEEDBACK SET', matches: (event) => event.feedbackSet === true },
+  { key: 'percussionSet', label: 'RAY Percussion Set', matches: (event) => event.percussionSet === true },
+  { key: 'chanzwerkSet', label: 'RAYCHANZWERK SET', matches: (event) => event.chanzwerkSet === true },
+  { key: 'experimentalVjSet', label: 'EXPERIMENTAL VJ SET', matches: (event) => event.experimentalVjSet === true },
+  { key: 'grooveSet', label: 'RAY GROOVE SET', matches: (event) => event.grooveSet === true },
+  { key: 'moshSet', label: 'RAY MOSH SET', matches: (event) => event.moshSet === true },
+  { key: 'rayphexTwin', label: 'RAYPHEX TWIN（RAY IDM SET）', matches: (event) => event.rayphexTwin === true },
 ];
 const seriesFlagFilters = [
-  { key: 'birthdayOrProduced', label: '生誕イベント / プロデュース公演', matches: (event) => event.birthdayOrProduced === true },
-  { key: 'extrome', label: 'エクストロメ', matches: (event) => event.extrome === true },
+  { key: 'predawn', label: 'PREDAWN', matches: (event) => event.predawn === true },
+  { key: 'neighbor', label: 'RAY presents「Neighbor?」', matches: (event) => event.neighbor === true },
+  { key: 'relationship', label: 'RAY presents「Relationship」', matches: (event) => event.relationship === true },
+  { key: 'atmosphere', label: 'RAY/代代代/クロスノエシス 3WAY SPLIT『ATMOSPHERE』ALMOST TRANSPARENT', matches: (event) => event.atmosphere === true },
+  { key: 'tieInReaction', label: '内山結愛 presents「tie in reaction」', matches: (event) => event.tieInReaction === true },
+  { key: 'noMyWay', label: 'RAY×BELRING少女ハート SPLIT TOUR NO MY WAY', matches: (event) => event.noMyWay === true },
   { key: 'totalFeedback', label: 'Total Feedback', matches: (event) => event.totalFeedback === true },
+  { key: 'extrome', label: 'エクストロメ', matches: (event) => event.extrome === true },
 ];
 const flagFilters = [...basicFlagFilters, ...seriesFlagFilters, ...specialSetFilters];
 const filterState = Object.fromEntries(valueFilters.map(({ key }) => [key, new Set()]));
@@ -162,11 +177,7 @@ function eventMatchesFilters(event) {
   }));
   return !conditions.length || (filterLogic === 'and' ? conditions.every(Boolean) : conditions.some(Boolean));
 }
-function statusIsVisible(event) {
-  if (event.status === 'postponed') return filterState.postponed === 'true';
-  if (event.status === 'cancelled') return filterState.cancelled === 'true';
-  return true;
-}
+function statusIsVisible(event) { return event.status !== 'postponed' && event.status !== 'cancelled'; }
 function isRegularEvent(event) {
   return event.status !== 'postponed' && event.status !== 'cancelled';
 }
@@ -213,10 +224,10 @@ function filterLogicMarkup() {
   return `<section class="filter-logic-group"><div><p>CONDITION GROUP</p><h3>条件のつなぎ方</h3><span>異なる項目どうしの一致条件を選択</span></div><label><span class="visually-hidden">条件のつなぎ方</span><select data-filter-logic aria-label="条件のつなぎ方"><option value="and"${filterLogic === 'and' ? ' selected' : ''}>すべてに一致（AND）</option><option value="or"${filterLogic === 'or' ? ' selected' : ''}>いずれかに一致（OR）</option></select></label></section>`;
 }
 function renderFilters() {
-  valueFilters.forEach(({ key, values }) => { filterOptions[key] = [...new Set(events.flatMap(values))].sort((a, b) => a.localeCompare(b, 'ja')); });
+  valueFilters.forEach(({ key, values, options }) => { filterOptions[key] = options ?? [...new Set(events.flatMap(values))].sort((a, b) => a.localeCompare(b, 'ja')); });
   filterPanel.innerHTML = [
     filterLogicMarkup(),
-    filterCategoryMarkup('BASIC', '基本条件', `${valueFilters.map(valueFilterMarkup).join('')}${basicFlagFilters.map(flagFilterMarkup).join('')}`),
+    filterCategoryMarkup('BASIC INFORMATION', '基本情報', `${valueFilters.map(valueFilterMarkup).join('')}${basicFlagFilters.map(flagFilterMarkup).join('')}`),
     filterCategoryMarkup('EVENT TYPES & SERIES', '企画・シリーズ', seriesFlagFilters.map(flagFilterMarkup).join('')),
     filterCategoryMarkup('SPECIAL SETS', '特殊セット', specialSetFilters.map(flagFilterMarkup).join(''), 'filter-category--sets'),
   ].join('');

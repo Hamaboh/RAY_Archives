@@ -3,18 +3,33 @@ import { writeFile } from 'node:fs/promises';
 
 const outputPath = new URL('../data/events.json', import.meta.url);
 const flagColumns = {
+  '遠征': 'travel',
   '延期': 'postponed',
   '中止': 'cancelled',
-  '主催': 'hosted',
+  'RAY主催': 'hosted',
   'ワンマンライブ': 'oneMan',
   '2マンライブ': 'twoMan',
   '3マンライブ': 'threeMan',
   'コラボ': 'collaboration',
   '生誕イベント / プロデュース公演': 'birthdayOrProduced',
-  'エクストロメ': 'extrome',
   '特殊セット': 'specialSet',
-  'Total Feedback': 'totalFeedback',
   'RAY Acoustic Set': 'acousticSet',
+  'PREDAWN': 'predawn',
+  'RAY presents「Neighbor?」': 'neighbor',
+  'RAY presents「Relationship」': 'relationship',
+  'RAY/代代代/クロスノエシス 3WAY SPLIT『ATMOSPHERE』ALMOST TRANSPARENT': 'atmosphere',
+  '内山結愛 presents「tie in reaction」': 'tieInReaction',
+  'RAY×BELRING少女ハート SPLIT TOUR NO MY WAY': 'noMyWay',
+  'RAY BAND SET': 'bandSet',
+  'RAY FEEDBACK SET': 'feedbackSet',
+  'RAY Percussion Set': 'percussionSet',
+  'RAYCHANZWERK SET': 'chanzwerkSet',
+  'EXPERIMENTAL VJ SET': 'experimentalVjSet',
+  'RAY GROOVE SET': 'grooveSet',
+  'RAY MOSH SET': 'moshSet',
+  'RAYPHEX TWIN（RAY IDM SET）': 'rayphexTwin',
+  'エクストロメ': 'extrome',
+  'Total Feedback': 'totalFeedback',
 };
 
 function parseTsv(input) {
@@ -47,7 +62,11 @@ function parseDate(value) {
 
 async function importRows(tsv) {
   const [header, ...rows] = parseTsv(tsv);
-  const index = Object.fromEntries(header.map((label, column) => [clean(label), column]));
+  const index = {};
+  header.forEach((label, column) => {
+    const key = clean(label);
+    if (!(key in index)) index[key] = column;
+  });
   const required = ['開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', '備考', ...Object.keys(flagColumns)];
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
