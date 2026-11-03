@@ -197,22 +197,22 @@ main { max-width:var(--max); margin:auto; }
 .song-artist > header h3 { font:800 24px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.06em; }
 .song-artist > header span { margin-left:auto; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.06em; }
 .song-cards { display:grid; grid-template-columns:1fr; gap:5px; }
-.song-card { min-width:0; padding:13px 15px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
+.song-card { min-width:0; padding:9px 15px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
 .song-card:hover { background:var(--white); color:var(--black); }
-.song-card-main { display:grid; grid-template-columns:minmax(120px,.5fr) minmax(240px,1.65fr) minmax(100px,.46fr) minmax(120px,.56fr); align-items:center; gap:12px 18px; }
+.song-card-main { display:grid; grid-template-columns:minmax(120px,.5fr) minmax(240px,1.65fr) minmax(100px,.46fr) minmax(120px,.56fr); align-items:center; gap:8px 18px; }
 .song-date { margin:0; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.02em; }
-.song-card h3 { margin:0; font:800 clamp(16px,1.65vw,21px)/1.28 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.05em; overflow-wrap:anywhere; }
+.song-card h3 { margin:0; font:800 clamp(15px,1.5vw,20px)/1.2 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.05em; overflow-wrap:anywhere; }
 .song-meta { display:contents; margin:0; }
 .song-meta div { min-width:0; }
 .song-meta dt { color:var(--subtle); font:9px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.06em; }
-.song-meta dd { margin:4px 0 0; font-size:10px; line-height:1.35; overflow-wrap:anywhere; }
+.song-meta dd { margin:3px 0 0; font:600 12px/1.25 "Meiryo UI",Meiryo,sans-serif; overflow-wrap:anywhere; }
 .song-card:hover .song-date,.song-card:hover .song-meta dt { color:#333; }
-.song-credits { margin-top:11px; }
+.song-credits { margin-top:7px; }
 .song-credits summary { width:max-content; cursor:pointer; font-size:10px; text-decoration:underline; text-underline-offset:3px; }
-.song-credits dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 16px; margin:10px 0 0; padding-top:10px; border-top:1px solid rgba(255,255,255,.22); }
-.song-credits div { min-width:0; }
+.song-credits dl { display:grid; grid-template-columns:1fr; gap:5px; margin:7px 0 0; padding-top:7px; border-top:1px solid rgba(255,255,255,.22); }
+.song-credits div { display:grid; grid-template-columns:minmax(96px,130px) minmax(0,1fr); gap:12px; align-items:baseline; min-width:0; }
 .song-credits dt { color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
-.song-credits dd { margin:2px 0 0; font-size:10px; line-height:1.5; overflow-wrap:anywhere; }
+.song-credits dd { margin:0; font-size:11px; line-height:1.4; overflow-wrap:anywhere; }
 .song-card:hover .song-credits dl { border-color:rgba(0,0,0,.22); }
 .song-card:hover .song-credits dt { color:#333; }
 
