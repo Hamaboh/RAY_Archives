@@ -31,8 +31,8 @@ function creditsMarkup(song) {
   return `<details class="song-credits"><summary>クレジットを見る</summary><dl>${credits.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl></details>`;
 }
 function songMarkup(song) {
-  const metadata = [song.type, song.artist, song.form !== song.artist ? song.form : ''].filter(isValue).join(' / ');
-  return `<article class="song-card"><div class="song-card-main"><p class="song-date">${escapeHtml(humanDate(song))}</p><h3>${escapeHtml(song.title)}</h3><p class="song-meta">${escapeHtml(metadata || '情報未登録')}</p></div>${creditsMarkup(song)}</article>`;
+  const form = song.form !== song.artist ? song.form : '';
+  return `<article class="song-card"><div class="song-card-main"><p class="song-date">${escapeHtml(humanDate(song))}</p><h3>${escapeHtml(song.title)}</h3><dl class="song-meta"><div><dt>種別</dt><dd>${escapeHtml(song.type || '—')}</dd></div>${form ? `<div><dt>活動形態</dt><dd>${escapeHtml(form)}</dd></div>` : ''}</dl></div>${creditsMarkup(song)}</article>`;
 }
 function filteredSongs() {
   const query = normalise(search.value).toLocaleLowerCase('ja-JP');
@@ -45,15 +45,15 @@ function renderSongs() {
   const visible = filteredSongs();
   const active = [normalise(search.value) ? `「${normalise(search.value)}」` : '', artistFilter.value, typeFilter.value].filter(Boolean);
   title.textContent = active.length ? '絞り込み結果' : 'すべての楽曲';
-  description.textContent = `${visible.length.toLocaleString('ja-JP')}曲を表示${active.length ? `：${active.join('・')}` : '。初披露日順に表示しています。'}`;
+  description.textContent = `${visible.length.toLocaleString('ja-JP')}曲を表示${active.length ? `：${active.join('・')}` : '。アーティスト別・初披露日順に表示しています。'}`;
   status.textContent = active.length ? `${active.length}項目で絞り込み中` : 'すべての楽曲を表示';
-  const years = new Map();
+  const artists = new Map();
   visible.forEach((song) => {
-    const key = song.year || '未登録';
-    if (!years.has(key)) years.set(key, []);
-    years.get(key).push(song);
+    const key = song.artist || 'アーティスト未登録';
+    if (!artists.has(key)) artists.set(key, []);
+    artists.get(key).push(song);
   });
-  list.innerHTML = [...years.entries()].sort(([first], [second]) => first === '未登録' ? 1 : second === '未登録' ? -1 : first.localeCompare(second, 'ja')).map(([year, entries]) => `<section class="song-year"><header><h3>${year === '未登録' ? '初披露日未登録' : year}</h3><span>${entries.length} SONGS</span></header><div class="song-cards">${entries.map(songMarkup).join('')}</div></section>`).join('');
+  list.innerHTML = [...artists.entries()].sort(([first], [second]) => first === 'アーティスト未登録' ? 1 : second === 'アーティスト未登録' ? -1 : first.localeCompare(second, 'ja')).map(([artist, entries]) => `<section class="song-artist"><header><h3>${escapeHtml(artist)}</h3><span>${entries.length} SONGS</span></header><div class="song-cards">${entries.map(songMarkup).join('')}</div></section>`).join('');
   empty.hidden = visible.length !== 0;
 }
 function initialise() {
