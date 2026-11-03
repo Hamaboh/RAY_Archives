@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 const outputPath = new URL('../data/events.json', import.meta.url);
 const flagColumns = {
@@ -28,11 +28,26 @@ const flagColumns = {
   'RAY GROOVE SET': 'grooveSet',
   'RAY MOSH SET': 'moshSet',
   'RAYPHEX TWIN（RAY IDM SET）': 'rayphexTwin',
+  '内山結愛弾き語り': 'uchiyamaSolo',
+  '内山結愛 Acoustic Set': 'uchiyamaAcousticSet',
+  'DJ内山結愛': 'djUchiyama',
+  '甲斐莉乃生誕バンド': 'kaiBirthdayBand',
+  '琴山しずく弾き語り': 'kotoyamaSolo',
+  '琴山しずく生誕バンド「コットリアン」': 'kottrianBand',
+  'DJ琴山しずく': 'djKotoyama',
+  '琴山しずく TECHNO SET': 'kotoyamaTechnoSet',
+  'hypermoshkotto': 'hypermoshkotto',
+  '月海まお弾き語り': 'tsukiumiSolo',
+  'DJ月海まお': 'djTsukiumi',
+  '月海まお NOISE SET / Noise(BoB).': 'tsukiumiNoiseSet',
+  '紬実詩 Acoustic Set': 'tsumugiAcousticSet',
+  'DJ紬実詩 / DJ酸辣湯麺': 'djTsumugi',
   'エクストロメ': 'extrome',
   'Total Feedback': 'totalFeedback',
 };
 
 function parseTsv(input) {
+  const delimiter = input.slice(0, input.indexOf('\n') === -1 ? input.length : input.indexOf('\n')).includes('\t') ? '\t' : ',';
   const rows = [];
   let row = [], value = '', quoted = false;
   for (let index = 0; index < input.length; index += 1) {
@@ -40,7 +55,7 @@ function parseTsv(input) {
     if (character === '"' && (quoted || value.length === 0)) {
       if (quoted && input[index + 1] === '"') { value += '"'; index += 1; }
       else quoted = !quoted;
-    } else if (character === '\t' && !quoted) { row.push(value); value = ''; }
+    } else if (character === delimiter && !quoted) { row.push(value); value = ''; }
     else if ((character === '\n' || character === '\r') && !quoted) {
       if (character === '\r' && input[index + 1] === '\n') index += 1;
       row.push(value); rows.push(row); row = []; value = '';
@@ -67,7 +82,7 @@ async function importRows(tsv) {
     const key = clean(label);
     if (!(key in index)) index[key] = column;
   });
-  const required = ['開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', '備考', ...Object.keys(flagColumns)];
+  const required = ['開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', '備考'];
   const missing = required.filter((label) => !(label in index));
   if (missing.length) throw new Error(`必要な列がありません: ${missing.join(', ')}`);
   const value = (row, label) => clean(row[index[label]]);
@@ -77,7 +92,7 @@ async function importRows(tsv) {
     const title = value(row, '公演名');
     if (!base || !title) return null;
     const flags = Object.fromEntries(Object.entries(flagColumns)
-      .filter(([label]) => isTrue(value(row, label)))
+      .filter(([label]) => label in index && isTrue(value(row, label)))
       .map(([, key]) => [key, true]));
     return {
       ...base,
@@ -95,8 +110,9 @@ async function importRows(tsv) {
       status: flags.cancelled ? 'cancelled' : flags.postponed ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));
-  await writeFile(outputPath, `${JSON.stringify({ source: 'Google スプレッドシート「イベント出演情報」', sourceSyncedAt: new Date().toISOString(), events })}\n`, 'utf8');
-  return { events: events.length, first: events[0]?.date, last: events.at(-1)?.date };
+  const sourceFlagKeys = Object.entries(flagColumns).filter(([label]) => label in index).map(([, key]) => key);
+  await writeFile(outputPath, `${JSON.stringify({ source: 'Google スプレッドシート「イベント出演情報」', sourceSyncedAt: new Date().toISOString(), sourceFlagKeys, events })}\n`, 'utf8');
+  return { events: events.length, first: events[0]?.date, last: events.at(-1)?.date, sourceFlagKeys };
 }
 
 const server = createServer(async (request, response) => {
@@ -123,4 +139,10 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(4174, '127.0.0.1', () => console.log('Ready on http://127.0.0.1:4174/import'));
+if (process.env.IMPORT_FILE) {
+  const result = await importRows(await readFile(process.env.IMPORT_FILE, 'utf8'));
+  console.log(JSON.stringify(result));
+} else {
+  const port = Number(process.env.IMPORT_PORT ?? 4174);
+  server.listen(port, '127.0.0.1', () => console.log(`Ready on http://127.0.0.1:${port}/import`));
+}

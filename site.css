@@ -179,6 +179,39 @@ main { max-width:var(--max); margin:auto; }
 .event-card:hover .event-purchase-benefits p,.event-card:hover .event-purchase-benefits li { color:var(--black); }
 .empty-state { padding:48px 0; color:var(--subtle); }
 
+.song-summary { gap:20px; }
+.song-summary div { min-width:64px; }
+.song-controls { display:grid; grid-template-columns:minmax(180px,.5fr) minmax(0,1fr); gap:clamp(24px,6vw,90px); align-items:end; padding:18px clamp(18px,8vw,125px) 35px; background:var(--black); }
+.song-controls-copy .eyebrow { margin-bottom:5px; }
+.song-controls-copy h2 { margin:0; font:800 clamp(23px,3vw,34px)/1.05 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.07em; }
+.song-controls-copy p:last-child { margin:7px 0 0; color:var(--subtle); font-size:11px; }
+.song-filter-fields { display:grid; grid-template-columns:minmax(190px,1.35fr) minmax(120px,.7fr) minmax(110px,.58fr); gap:7px; }
+.song-filter-fields label { display:grid; gap:5px; min-width:0; color:var(--subtle); font:9px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.09em; }
+.song-filter-fields input,.song-filter-fields select { width:100%; min-width:0; height:37px; padding:0 10px; border:1px solid var(--line); border-radius:3px; outline:0; background:#080808; color:var(--white); font:12px "Meiryo UI",Meiryo,sans-serif; letter-spacing:0; }
+.song-filter-fields input:focus,.song-filter-fields select:focus { border-color:var(--white); background:#161616; }
+.song-results { min-height:680px; padding:32px clamp(18px,8vw,125px) 95px; background:var(--black); }
+.song-results .results-header { max-width:600px; }
+.song-year { margin-top:36px; }
+.song-year > header { display:flex; align-items:baseline; gap:10px; padding-bottom:7px; }
+.song-year > header h3,.song-year > header span { margin:0; }
+.song-year > header h3 { font:800 24px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.06em; }
+.song-year > header span { margin-left:auto; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.06em; }
+.song-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
+.song-card { min-width:0; padding:14px 15px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
+.song-card:hover { background:var(--white); color:var(--black); }
+.song-date { margin:0 0 7px; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.02em; }
+.song-card h3 { margin:0; font:800 clamp(16px,1.65vw,21px)/1.28 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.05em; overflow-wrap:anywhere; }
+.song-meta { margin:5px 0 0; color:var(--subtle); font-size:10px; overflow-wrap:anywhere; }
+.song-card:hover .song-date,.song-card:hover .song-meta { color:#333; }
+.song-credits { margin-top:13px; }
+.song-credits summary { width:max-content; cursor:pointer; font-size:10px; text-decoration:underline; text-underline-offset:3px; }
+.song-credits dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 16px; margin:10px 0 0; padding-top:10px; border-top:1px solid rgba(255,255,255,.22); }
+.song-credits div { min-width:0; }
+.song-credits dt { color:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
+.song-credits dd { margin:2px 0 0; font-size:10px; line-height:1.5; overflow-wrap:anywhere; }
+.song-card:hover .song-credits dl { border-color:rgba(0,0,0,.22); }
+.song-card:hover .song-credits dt { color:#333; }
+
 footer { display:flex; justify-content:space-between; gap:20px; padding:20px clamp(18px,4vw,60px); border-top:1px solid var(--white); background:var(--black); color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; }
 footer p { margin:0; }
 footer a { color:var(--white); text-decoration:underline; text-underline-offset:4px; }
@@ -210,6 +243,11 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .year-nav button[aria-current="true"],.year-nav button:hover { padding-left:8px; }
   .year-nav b { display:none; }
   .event-results { min-height:600px; padding:29px 18px 65px; }
+  .song-controls { grid-template-columns:1fr; padding:22px 18px 28px; }
+  .song-filter-fields { grid-template-columns:1fr 1fr; }
+  .song-search { grid-column:1 / -1; }
+  .song-results { min-height:0; padding:28px 18px 70px; }
+  .song-cards { grid-template-columns:1fr; }
   .event-month { margin-top:25px; }
   .event-card { grid-template-columns:46px minmax(0,1fr); gap:10px; }
   .event-card time strong { font-size:21px; }
