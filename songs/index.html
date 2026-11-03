@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="RAYとメンバーによる楽曲の初披露日、クレジット、アレンジ情報をたどれるアーカイブ" />
     <title>楽曲情報 — RAY Archives</title>
-    <link rel="stylesheet" href="../site.css?v=20261103-compact-records" />
+    <link rel="stylesheet" href="../site.css?v=20261103-search-scope" />
   </head>
   <body class="songs-page">
     <a class="skip-link" href="#song-results">楽曲一覧へ移動</a>
@@ -21,7 +21,8 @@
       <section class="song-controls" aria-labelledby="song-filter-heading">
         <div class="song-controls-copy"><p class="eyebrow">FILTER</p><h2 id="song-filter-heading">楽曲を絞り込む</h2><p id="song-filter-status">すべての楽曲を表示</p></div>
         <div class="song-filter-fields">
-          <label class="song-search"><span>キーワード</span><input id="song-search" type="search" placeholder="楽曲名・クレジットで検索" autocomplete="off" /></label>
+          <label class="song-search"><span>キーワード</span><input id="song-search" type="search" placeholder="楽曲名を検索" autocomplete="off" /></label>
+          <fieldset class="song-search-scope"><legend>検索対象</legend><div><button type="button" data-search-scope="title" aria-pressed="true">楽曲名</button><button type="button" data-search-scope="credits" aria-pressed="false">クレジット</button></div></fieldset>
           <label class="song-select"><span>アーティスト</span><select id="artist-filter"><option value="">すべて</option></select></label>
           <label class="song-select"><span>種別</span><select id="type-filter"><option value="">すべて</option></select></label>
         </div>
@@ -33,6 +34,6 @@
       </section>
     </main>
     <footer><p>RAY ARCHIVES</p><a href="../">TOPへ戻る ↑</a><a href="../events/">イベント出演情報</a><a href="https://github.com/Hamaboh/RAY_Archives" target="_blank" rel="noreferrer">GITHUB ↗</a></footer>
-    <script type="module" src="songs.js?v=20261103-artist-groups"></script>
+    <script type="module" src="songs.js?v=20261103-search-scope"></script>
   </body>
 </html>

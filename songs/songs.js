@@ -4,6 +4,7 @@ const normalise = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const isValue = (value) => Boolean(normalise(value)) && normalise(value) !== '-';
 const humanDate = (song) => song.year ? `${song.year}年${String(song.month).padStart(2, '0')}月${String(song.day).padStart(2, '0')}日${song.time ? ` ${song.time}` : ''}` : '初披露日未登録';
 const search = $('#song-search');
+const searchScopeButtons = [...document.querySelectorAll('[data-search-scope]')];
 const artistFilter = $('#artist-filter');
 const typeFilter = $('#type-filter');
 const total = $('#song-total');
@@ -15,9 +16,25 @@ const description = $('#song-results-description');
 const list = $('#song-list');
 const empty = $('#song-empty');
 let songs = [];
+let searchScope = 'title';
+
+const artistOrder = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '琴山しずく', '月海まお', 'RAY, BELLRING少女ハート', 'のうまらいず'];
+const typeOrder = ['オリジナル', 'カバー', 'アレンジ'];
 
 function optionMarkup(value) { return `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`; }
 function isSame(value, filter) { return !filter || value === filter; }
+function orderedValues(values, preferredOrder) {
+  const available = new Set(values);
+  return [...preferredOrder.filter((value) => available.has(value)), ...values.filter((value) => !preferredOrder.includes(value)).sort((first, second) => first.localeCompare(second, 'ja'))];
+}
+function updateSearchScope() {
+  const isTitle = searchScope === 'title';
+  search.placeholder = isTitle ? '楽曲名を検索' : '原曲・作詞・作曲・編曲・振付を検索';
+  searchScopeButtons.forEach((button) => {
+    const selected = button.dataset.searchScope === searchScope;
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
 function creditsMarkup(song) {
   const credits = [
     ['原曲アーティスト', song.originalArtist],
@@ -37,13 +54,13 @@ function songMarkup(song) {
 function filteredSongs() {
   const query = normalise(search.value).toLocaleLowerCase('ja-JP');
   return songs.filter((song) => {
-    const searchable = [song.title, song.artist, song.form, song.type, song.originalArtist, song.lyrics, song.composition, song.arrangement, song.choreography, song.alternateVersion].join(' ').toLocaleLowerCase('ja-JP');
+    const searchable = (searchScope === 'title' ? [song.title] : [song.originalArtist, song.lyrics, song.composition, song.arrangement, song.choreography, song.alternateVersion]).join(' ').toLocaleLowerCase('ja-JP');
     return (!query || searchable.includes(query)) && isSame(song.artist, artistFilter.value) && isSame(song.type, typeFilter.value);
   });
 }
 function renderSongs() {
   const visible = filteredSongs();
-  const active = [normalise(search.value) ? `「${normalise(search.value)}」` : '', artistFilter.value, typeFilter.value].filter(Boolean);
+  const active = [normalise(search.value) ? `${searchScope === 'title' ? '楽曲名' : 'クレジット'}:「${normalise(search.value)}」` : '', artistFilter.value, typeFilter.value].filter(Boolean);
   title.textContent = active.length ? '絞り込み結果' : 'すべての楽曲';
   description.textContent = `${visible.length.toLocaleString('ja-JP')}曲を表示${active.length ? `：${active.join('・')}` : '。アーティスト別・初披露日順に表示しています。'}`;
   status.textContent = active.length ? `${active.length}項目で絞り込み中` : 'すべての楽曲を表示';
@@ -57,14 +74,21 @@ function renderSongs() {
   empty.hidden = visible.length !== 0;
 }
 function initialise() {
-  const artists = [...new Set(songs.map((song) => song.artist).filter(isValue))].sort((first, second) => first.localeCompare(second, 'ja'));
-  const types = [...new Set(songs.map((song) => song.type).filter(isValue))].sort((first, second) => first.localeCompare(second, 'ja'));
+  const artists = orderedValues([...new Set(songs.map((song) => song.artist).filter(isValue))], artistOrder);
+  const types = orderedValues([...new Set(songs.map((song) => song.type).filter(isValue))], typeOrder);
   artistFilter.insertAdjacentHTML('beforeend', artists.map(optionMarkup).join(''));
   typeFilter.insertAdjacentHTML('beforeend', types.map(optionMarkup).join(''));
   total.textContent = songs.length.toLocaleString('ja-JP');
   artistTotal.textContent = artists.length.toLocaleString('ja-JP');
   formTotal.textContent = new Set(songs.map((song) => song.form).filter(isValue)).size.toLocaleString('ja-JP');
   [search, artistFilter, typeFilter].forEach((input) => input.addEventListener(input === search ? 'input' : 'change', renderSongs));
+  searchScopeButtons.forEach((button) => button.addEventListener('click', () => {
+    searchScope = button.dataset.searchScope;
+    updateSearchScope();
+    renderSongs();
+    search.focus();
+  }));
+  updateSearchScope();
   renderSongs();
 }
 
