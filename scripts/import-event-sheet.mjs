@@ -76,6 +76,8 @@ function parseDate(value) {
 }
 
 async function importRows(tsv) {
+  const existing = JSON.parse(await readFile(outputPath, 'utf8').catch(() => '{"events":[]}'));
+  const existingByEvent = new Map((existing.events ?? []).map((event) => [`${event.date}\u0000${event.title}`, event]));
   const [header, ...rows] = parseTsv(tsv);
   const index = {};
   header.forEach((label, column) => {
@@ -91,6 +93,7 @@ async function importRows(tsv) {
     const base = parseDate(value(row, '開催日時'));
     const title = value(row, '公演名');
     if (!base || !title) return null;
+    const previous = existingByEvent.get(`${base.date}\u0000${title}`);
     const flags = Object.fromEntries(Object.entries(flagColumns)
       .filter(([label]) => label in index && isTrue(value(row, label)))
       .map(([, key]) => [key, true]));
@@ -107,6 +110,10 @@ async function importRows(tsv) {
       url: value(row, 'イベントURL'),
       notes: '備考' in index ? noteValue(row) : '',
       ...flags,
+      // セットリストは別シート由来のため、開催日時と公演名が一致する既存レコードから維持する。
+      ...(previous?.setlists?.length ? { setlists: previous.setlists } : {}),
+      // 現行シートに列がない間も、過去に確定した Total Feedback の分類を失わせない。
+      ...(!('Total Feedback' in index) && previous?.totalFeedback ? { totalFeedback: true } : {}),
       status: flags.cancelled ? 'cancelled' : flags.postponed ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));
