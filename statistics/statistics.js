@@ -182,8 +182,12 @@ function bindChartTooltip() {
   };
   const show = (event) => {
     const songs = songsAtPointer(event);
-    const fallbackSong = event.currentTarget.closest('.statistics-series')?.dataset.song;
-    tooltip.textContent = (songs.length ? songs : fallbackSong ? [{ song: fallbackSong, count: 0 }] : []).map(({ song, count }) => `${song}（${count.toLocaleString('ja-JP')}回）`).join(',\n');
+    if (!songs.length) {
+      tooltip.textContent = '';
+      tooltip.hidden = true;
+      return;
+    }
+    tooltip.textContent = songs.map(({ song, count }) => `${song}（${count.toLocaleString('ja-JP')}回）`).join(',\n');
     tooltip.hidden = false;
     positionTooltip(event);
   };
