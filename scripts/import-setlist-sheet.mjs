@@ -82,6 +82,7 @@ async function importRows(tsv) {
     if (isTrue(value(row, '統計対象'))) {
       statisticsEntries.push({
         date,
+        artist: setlist.artist,
         song,
         statisticSong: statisticSongAliases.get(song) ?? song,
       });

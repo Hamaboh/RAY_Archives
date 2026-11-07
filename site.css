@@ -243,12 +243,19 @@ main { max-width:var(--max); margin:auto; }
 .statistics-series { color:var(--series); transition:opacity .16s ease; }
 .statistics-series polyline { fill:none; stroke:var(--series); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
 .statistics-series circle { fill:var(--series); stroke:var(--black); stroke-width:1.2; }
-.statistics-series.is-hidden { opacity:.08; }
-.statistics-legend { display:flex; flex-wrap:wrap; gap:5px 7px; margin:14px 0 0; padding:0; list-style:none; }
-.statistics-legend button { display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid rgba(255,255,255,.24); border-radius:2px; background:transparent; color:var(--white); cursor:pointer; font:10px/1.25 "Meiryo UI",Meiryo,sans-serif; text-align:left; }
-.statistics-legend button:hover,.statistics-legend button:focus-visible { border-color:var(--white); outline:0; }
-.statistics-legend button[aria-pressed="false"] { opacity:.38; text-decoration:line-through; }
-.statistics-legend i { display:block; flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:var(--series); }
+.statistics-filters { display:grid; gap:17px; margin-top:19px; padding:17px 0 0; border-top:1px solid rgba(255,255,255,.32); }
+.statistics-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.statistics-filter-heading .eyebrow { margin:0; }
+.statistics-filter-clear { padding:0; border:0; background:transparent; color:var(--subtle); cursor:pointer; font:10px "Meiryo UI",Meiryo,sans-serif; text-decoration:underline; text-underline-offset:3px; }
+.statistics-filter-clear:hover,.statistics-filter-clear:focus-visible { color:var(--white); outline:0; }
+.statistics-filter-clear:disabled { visibility:hidden; }
+.statistics-filter-group { display:grid; gap:8px; }
+.statistics-filter-group h3 { margin:0; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; font-weight:400; letter-spacing:.09em; }
+.statistics-filter-tabs { display:flex; flex-wrap:wrap; gap:6px; }
+.statistics-filter-tab { min-height:31px; padding:6px 10px; border:1px solid rgba(255,255,255,.26); border-radius:2px; background:transparent; color:var(--subtle); cursor:pointer; font:11px/1.15 "Meiryo UI",Meiryo,sans-serif; transition:background .14s ease,border-color .14s ease,color .14s ease; }
+.statistics-filter-tab:hover,.statistics-filter-tab:focus-visible { border-color:rgba(255,255,255,.8); color:var(--white); outline:0; }
+.statistics-filter-tab[aria-pressed="true"] { border-color:var(--white); background:var(--white); color:var(--black); }
+.statistics-filter-copy { margin:0; color:var(--subtle); font-size:10px; line-height:1.7; }
 
 footer { display:flex; justify-content:space-between; gap:20px; padding:20px clamp(18px,4vw,60px); border-top:1px solid var(--white); background:var(--black); color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; }
 footer p { margin:0; }
