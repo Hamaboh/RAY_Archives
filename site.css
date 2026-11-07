@@ -301,7 +301,6 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .event-filters { grid-template-columns:1fr; }
   .event-filter-menu { min-width:0; }
   .event-years { position:sticky; gap:12px; padding:11px 18px; overflow-x:auto; }
-  .statistics-table-groups--with-ray { grid-template-columns:1fr; gap:22px; }
   .year-nav { flex-wrap:nowrap; }
   .year-nav button { flex:0 0 auto; min-height:34px; padding:7px 9px; white-space:nowrap; }
   .year-nav b { display:none; }
@@ -322,4 +321,8 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .event-detail-content--with-setlist { grid-template-columns:1fr; }
   footer { display:block; }
   footer>* { display:block; margin:7px 0!important; }
+}
+
+@media (max-width:540px) {
+  .statistics-table-groups--with-ray { grid-template-columns:1fr; gap:22px; }
 }
