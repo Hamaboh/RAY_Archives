@@ -6,6 +6,8 @@
 
 - `/` — TOP（各アーカイブページへの入口）
 - `/events/` — イベント出演情報（年・月・キーワードで検索、各記録の詳細表示）
+- `/songs/` — オリジナル楽曲（初披露日・アーティスト・クレジットで閲覧）
+- `/limited-songs/` — 限定披露楽曲（当日限定で披露された楽曲・パフォーマンスを閲覧）
 
 ## データ更新
 
@@ -17,6 +19,15 @@ node scripts/build-event-data.mjs
 ```
 
 `scripts/build-event-data.mjs` は、アーカイブ内の「イベント出演情報」を閲覧用の `data/events.json` に整形します。
+
+Google スプレッドシートから楽曲情報を更新する場合は、それぞれのシートを全選択・コピーし、対応する取込スクリプトを起動して貼り付けます。
+
+```sh
+IMPORT_PORT=4178 node scripts/import-song-sheet.mjs
+IMPORT_PORT=4179 node scripts/import-limited-performance-sheet.mjs
+```
+
+前者は「オリジナル楽曲」、後者は「当日限定パフォーマンス」を、それぞれ `data/songs.json` と `data/limited-performances.json` に同期します。
 
 ## 公開
 
