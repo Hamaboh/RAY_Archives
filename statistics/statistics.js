@@ -98,7 +98,13 @@ function artistTables(entries) {
 
 function tableMarkup(entries) {
   const tables = artistTables(entries);
-  return `<section class="statistics-table-section" aria-labelledby="statistics-table-heading"><div class="statistics-table-heading"><p class="eyebrow">TABLE</p><h3 id="statistics-table-heading">出演者別・表示中の披露回数</h3></div><div class="statistics-table-groups">${tables.map(({ artist, rows }) => `<section class="statistics-artist-table" aria-labelledby="statistics-table-${escapeHtml(artist)}"><h4 id="statistics-table-${escapeHtml(artist)}">${escapeHtml(artist)}</h4><div class="statistics-table-scroll"><table><thead><tr><th scope="col">楽曲名</th><th scope="col">披露回数</th></tr></thead><tbody>${rows.map(({ song, count }) => `<tr><td>${escapeHtml(song)}</td><td>${count.toLocaleString('ja-JP')}回</td></tr>`).join('')}</tbody></table></div></section>`).join('')}</div></section>`;
+  const table = ({ artist, rows }, extraClass = '') => `<section class="statistics-artist-table${extraClass}" aria-labelledby="statistics-table-${escapeHtml(artist)}"><h4 id="statistics-table-${escapeHtml(artist)}">${escapeHtml(artist)}</h4><div class="statistics-table-scroll"><table><thead><tr><th scope="col">楽曲名</th><th scope="col">披露回数</th></tr></thead><tbody>${rows.map(({ song, count }) => `<tr><td>${escapeHtml(song)}</td><td>${count.toLocaleString('ja-JP')}回</td></tr>`).join('')}</tbody></table></div></section>`;
+  const rayTable = tables.find(({ artist }) => artist === 'RAY');
+  const otherTables = tables.filter(({ artist }) => artist !== 'RAY');
+  const contents = rayTable
+    ? `<div class="statistics-table-groups statistics-table-groups--with-ray">${table(rayTable, ' statistics-artist-table--ray')}<div class="statistics-table-others">${otherTables.map((entry) => table(entry)).join('')}</div></div>`
+    : `<div class="statistics-table-groups">${otherTables.map((entry) => table(entry)).join('')}</div>`;
+  return `<section class="statistics-table-section" aria-labelledby="statistics-table-heading"><div class="statistics-table-heading"><p class="eyebrow">TABLE</p><h3 id="statistics-table-heading">出演者別・表示中の披露回数</h3></div>${contents}</section>`;
 }
 
 function chartMarkup(model, entries, selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years) {

@@ -266,6 +266,8 @@ main { max-width:var(--max); margin:auto; }
 .statistics-table-heading .eyebrow { margin:0; }
 .statistics-table-heading h3 { margin:0; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; font-weight:400; letter-spacing:.06em; }
 .statistics-table-groups { display:grid; gap:22px; }
+.statistics-table-groups--with-ray { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:clamp(28px,5vw,76px); }
+.statistics-table-others { display:grid; gap:22px; }
 .statistics-artist-table { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
 .statistics-artist-table h4 { margin:0; color:var(--white); font:12px/1.2 "Meiryo UI",Meiryo,sans-serif; font-weight:400; letter-spacing:.04em; }
 .statistics-table-scroll { display:inline-block; max-width:100%; overflow-x:auto; border:1px solid rgba(255,255,255,.48); vertical-align:top; }
@@ -299,6 +301,7 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .event-filters { grid-template-columns:1fr; }
   .event-filter-menu { min-width:0; }
   .event-years { position:sticky; gap:12px; padding:11px 18px; overflow-x:auto; }
+  .statistics-table-groups--with-ray { grid-template-columns:1fr; gap:22px; }
   .year-nav { flex-wrap:nowrap; }
   .year-nav button { flex:0 0 auto; min-height:34px; padding:7px 9px; white-space:nowrap; }
   .year-nav b { display:none; }
