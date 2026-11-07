@@ -83,6 +83,7 @@ async function importRows(tsv) {
       statisticsEntries.push({
         date,
         artist: setlist.artist,
+        form: setlist.form || '未記載',
         song,
         statisticSong: statisticSongAliases.get(song) ?? song,
       });

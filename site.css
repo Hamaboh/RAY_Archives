@@ -256,6 +256,15 @@ main { max-width:var(--max); margin:auto; }
 .statistics-filter-tab:hover,.statistics-filter-tab:focus-visible { border-color:rgba(255,255,255,.8); color:var(--white); outline:0; }
 .statistics-filter-tab[aria-pressed="true"] { border-color:var(--white); background:var(--white); color:var(--black); }
 .statistics-filter-copy { margin:0; color:var(--subtle); font-size:10px; line-height:1.7; }
+.statistics-table-section { margin-top:30px; padding-top:18px; border-top:1px solid rgba(255,255,255,.32); }
+.statistics-table-heading { display:flex; align-items:baseline; justify-content:space-between; gap:18px; margin-bottom:10px; }
+.statistics-table-heading .eyebrow { margin:0; }
+.statistics-table-heading h3 { margin:0; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; font-weight:400; letter-spacing:.06em; }
+.statistics-table-scroll { overflow-x:auto; }
+.statistics-table-scroll table { width:100%; border-collapse:collapse; font:12px/1.45 "Meiryo UI",Meiryo,sans-serif; }
+.statistics-table-scroll th { padding:8px 0; border-bottom:1px solid rgba(255,255,255,.58); color:var(--subtle); font-size:10px; font-weight:400; text-align:left; }
+.statistics-table-scroll td { padding:9px 0; border-bottom:1px solid rgba(255,255,255,.15); }
+.statistics-table-scroll th:last-child,.statistics-table-scroll td:last-child { width:7.5em; text-align:right; white-space:nowrap; }
 
 footer { display:flex; justify-content:space-between; gap:20px; padding:20px clamp(18px,4vw,60px); border-top:1px solid var(--white); background:var(--black); color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; }
 footer p { margin:0; }

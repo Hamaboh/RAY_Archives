@@ -7,6 +7,7 @@ const empty = $('#statistics-empty');
 const colors = ['#f5f5f5', '#9fc5ff', '#ffbc8b', '#a8e6c1', '#d8b4fe', '#f7a8c8', '#fbef9a', '#7dd3fc', '#fca5a5', '#c4b5fd', '#86efac', '#fcd34d', '#f0abfc', '#67e8f9', '#fdba74', '#a3e635'];
 const artistOptions = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '琴山しずく', '月海まお'];
 const yearOptions = ['2019', '2020', '2021', '2022', '2023', '2024'];
+const formOrder = ['RAY', 'RAY Acoustic Set', 'RAY BAND SET', 'RAY FEEDBACK SET', 'RAY Percussion Set', 'DJ RAYちゃんず', 'RAYCHANZWERK SET', 'EXPERIMENTAL VJ SET', 'RAY GROOVE SET', 'RAY MOSH SET', 'RAYPHEX TWIN（RAY IDM SET）', '内山結愛', '内山結愛弾き語り', '内山結愛 Acoustic Set', 'DJ内山結愛', '甲斐莉乃', '甲斐莉乃生誕バンド', '白川さやか', '琴山しずく', '琴山しずく弾き語り', '琴山しずく生誕バンド「コットリアン」', 'DJ琴山しずく', '琴山しずく TECHNO SET', 'hypermoshkotto', '月海まお', '月海まお弾き語り', 'DJ月海まお', '月海まお NOISE SET', '紬実詩', '紬実詩 Acoustic Set', 'DJ紬実詩', 'DJ酸辣湯麺', '月日', '愛海', 'のうまらいず'];
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 
 function dateLabel(value) {
@@ -34,23 +35,39 @@ function aggregate(entries) {
 }
 
 function filterButtonMarkup(options, type, selected) {
-  return options.map((option) => `<button type="button" class="statistics-filter-tab" data-filter-type="${type}" data-filter-value="${option}" aria-pressed="${selected.has(option)}">${type === 'year' ? `${option}年` : escapeHtml(option)}</button>`).join('');
+  return options.map((option) => `<button type="button" class="statistics-filter-tab" data-filter-type="${type}" data-filter-value="${escapeHtml(option)}" aria-pressed="${selected.has(option)}">${type === 'year' ? `${option}年` : escapeHtml(option)}</button>`).join('');
 }
 
-function filterMarkup(selectedArtists, selectedYears) {
-  return `<div class="statistics-filters" aria-label="セットリスト統計の絞り込み"><div class="statistics-filter-heading"><p class="eyebrow">FILTER</p><button type="button" class="statistics-filter-clear" ${selectedArtists.size || selectedYears.size ? '' : 'disabled'}>すべて解除</button></div><section class="statistics-filter-group" aria-labelledby="statistics-artist-filter"><h3 id="statistics-artist-filter">アーティスト</h3><div class="statistics-filter-tabs" role="group" aria-label="アーティストで絞り込む">${filterButtonMarkup(artistOptions, 'artist', selectedArtists)}</div></section><section class="statistics-filter-group" aria-labelledby="statistics-year-filter"><h3 id="statistics-year-filter">時期</h3><div class="statistics-filter-tabs" role="group" aria-label="年で絞り込む">${filterButtonMarkup(yearOptions, 'year', selectedYears)}</div></section><p class="statistics-filter-copy">複数選択できます。アーティスト内・時期内は OR、両方を選択した場合は AND で絞り込みます。</p></div>`;
+function formOptions(entries) {
+  const available = new Set(entries.map((entry) => entry.form).filter((form) => form && form !== '-'));
+  return [...available].sort((first, second) => {
+    const firstIndex = formOrder.indexOf(first);
+    const secondIndex = formOrder.indexOf(second);
+    return (firstIndex < 0 ? Number.MAX_SAFE_INTEGER : firstIndex) - (secondIndex < 0 ? Number.MAX_SAFE_INTEGER : secondIndex) || first.localeCompare(second, 'ja');
+  });
 }
 
-function chartMarkup(model, selectedArtists, selectedYears) {
+function filterMarkup(selectedArtists, selectedForms, selectedYears, forms) {
+  const selectedCount = selectedArtists.size || selectedForms.size || selectedYears.size;
+  return `<div class="statistics-filters" aria-label="セットリスト統計の絞り込み"><div class="statistics-filter-heading"><p class="eyebrow">FILTER</p><button type="button" class="statistics-filter-clear" ${selectedCount ? '' : 'disabled'}>すべて解除</button></div><section class="statistics-filter-group" aria-labelledby="statistics-artist-filter"><h3 id="statistics-artist-filter">アーティスト</h3><div class="statistics-filter-tabs" role="group" aria-label="アーティストで絞り込む">${filterButtonMarkup(artistOptions, 'artist', selectedArtists)}</div></section><section class="statistics-filter-group" aria-labelledby="statistics-form-filter"><h3 id="statistics-form-filter">形態</h3><div class="statistics-filter-tabs" role="group" aria-label="形態で絞り込む">${filterButtonMarkup(forms, 'form', selectedForms)}</div></section><section class="statistics-filter-group" aria-labelledby="statistics-year-filter"><h3 id="statistics-year-filter">時期</h3><div class="statistics-filter-tabs" role="group" aria-label="年で絞り込む">${filterButtonMarkup(yearOptions, 'year', selectedYears)}</div></section><p class="statistics-filter-copy">複数選択できます。同じ分類内は OR、異なる分類を同時に選んだ場合は AND で絞り込みます。</p></div>`;
+}
+
+function tableMarkup(model) {
+  const rows = model.songs.map((song) => ({ song, count: model.cumulative.get(song).at(-1)?.value ?? 0 }))
+    .sort((first, second) => second.count - first.count || first.song.localeCompare(second.song, 'ja'));
+  return `<section class="statistics-table-section" aria-labelledby="statistics-table-heading"><div class="statistics-table-heading"><p class="eyebrow">TABLE</p><h3 id="statistics-table-heading">表示中の披露回数</h3></div><div class="statistics-table-scroll"><table><thead><tr><th scope="col">楽曲名</th><th scope="col">披露回数</th></tr></thead><tbody>${rows.map(({ song, count }) => `<tr><td>${escapeHtml(song)}</td><td>${count.toLocaleString('ja-JP')}回</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+
+function chartMarkup(model, selectedArtists, selectedForms, selectedYears, forms) {
   const { eventDates, songs, cumulative, max } = model;
   const left = 50;
-  const top = 24;
+  const top = 30;
   const bottom = 82;
-  const height = 372;
+  const height = 840;
   const pointGap = 4;
   const width = Math.max(840, left + 24 + Math.max(0, eventDates.length - 1) * pointGap + 45);
   const graphHeight = height - top - bottom;
-  const x = (index) => left + (eventDates.length === 1 ? 0 : index * pointGap);
+  const x = (index) => eventDates.length === 1 ? width - 24 : left + index * ((width - left - 24) / (eventDates.length - 1));
   const y = (value) => top + graphHeight - (value / max) * graphHeight;
   const tickCount = Math.min(max, 5);
   const ticks = [...new Set([...Array(tickCount + 1)].map((_, index) => Math.round((max / tickCount) * index)))].sort((first, second) => first - second);
@@ -64,38 +81,40 @@ function chartMarkup(model, selectedArtists, selectedYears) {
   }).join('');
   const labelStep = Math.max(1, Math.ceil((eventDates.length - 1) / 10));
   const labels = eventDates.map((date, index) => (index % labelStep === 0 || index === eventDates.length - 1 ? `<text class="statistics-date" x="${x(index)}" y="${height - bottom + 21}" text-anchor="end" transform="rotate(-48 ${x(index)} ${height - bottom + 21})">${dateLabel(date)}</text>` : '')).join('');
-  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。点はその楽曲を披露したイベント、線は点どうしを結んだ累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg></div>${filterMarkup(selectedArtists, selectedYears)}`;
+  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。点はその楽曲を披露したイベント、線は点どうしを結んだ累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg></div>${filterMarkup(selectedArtists, selectedForms, selectedYears, forms)}${tableMarkup(model)}`;
 }
 
-function filteredEntries(entries, selectedArtists, selectedYears) {
-  return entries.filter((entry) => (!selectedArtists.size || selectedArtists.has(entry.artist)) && (!selectedYears.size || selectedYears.has(entry.date.slice(0, 4))));
+function filteredEntries(entries, selectedArtists, selectedForms, selectedYears) {
+  return entries.filter((entry) => (!selectedArtists.size || selectedArtists.has(entry.artist)) && (!selectedForms.size || selectedForms.has(entry.form)) && (!selectedYears.size || selectedYears.has(entry.date.slice(0, 4))));
 }
 
-function render(entries, selectedArtists, selectedYears) {
-  const filtered = filteredEntries(entries, selectedArtists, selectedYears);
+function render(entries, selectedArtists, selectedForms, selectedYears) {
+  const forms = formOptions(entries);
+  const filtered = filteredEntries(entries, selectedArtists, selectedForms, selectedYears);
   if (!filtered.length) {
     heading.textContent = '条件に一致する統計対象のセットリストはありません';
     description.textContent = 'フィルター条件を変更してください。';
-    chart.innerHTML = filterMarkup(selectedArtists, selectedYears);
+    chart.innerHTML = filterMarkup(selectedArtists, selectedForms, selectedYears, forms);
     chart.hidden = false;
   } else {
     const model = aggregate(filtered);
     heading.textContent = '楽曲別・累計披露回数';
     description.textContent = '披露したイベントだけに点を置き、点どうしを結んで累計披露回数を表示しています。';
-    chart.innerHTML = chartMarkup(model, selectedArtists, selectedYears);
+    chart.innerHTML = chartMarkup(model, selectedArtists, selectedForms, selectedYears, forms);
     chart.hidden = false;
   }
   chart.querySelectorAll('.statistics-filter-tab').forEach((button) => button.addEventListener('click', () => {
-    const target = button.dataset.filterType === 'artist' ? selectedArtists : selectedYears;
+    const target = button.dataset.filterType === 'artist' ? selectedArtists : button.dataset.filterType === 'form' ? selectedForms : selectedYears;
     const value = button.dataset.filterValue;
     if (target.has(value)) target.delete(value);
     else target.add(value);
-    render(entries, selectedArtists, selectedYears);
+    render(entries, selectedArtists, selectedForms, selectedYears);
   }));
   chart.querySelector('.statistics-filter-clear')?.addEventListener('click', () => {
     selectedArtists.clear();
+    selectedForms.clear();
     selectedYears.clear();
-    render(entries, selectedArtists, selectedYears);
+    render(entries, selectedArtists, selectedForms, selectedYears);
   });
 }
 
@@ -103,13 +122,13 @@ try {
   const response = await fetch('../data/setlist-statistics.json', { cache: 'no-cache' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const source = await response.json();
-  const entries = (source.entries ?? []).filter((entry) => entry.date && entry.artist && entry.statisticSong);
+  const entries = (source.entries ?? []).filter((entry) => entry.date && entry.artist && entry.form && entry.statisticSong);
   if (!entries.length) {
     heading.textContent = '統計対象のセットリストはありません';
     description.textContent = 'スプレッドシートの「統計対象」が TRUE のレコードを表示します。';
     empty.hidden = false;
   } else {
-    render(entries, new Set(), new Set());
+    render(entries, new Set(), new Set(), new Set());
   }
 } catch (error) {
   console.error(error);
