@@ -40,16 +40,18 @@ main { max-width:var(--max); margin:auto; }
 .page-card b { align-self:center; font:400 26px/1 "Meiryo UI",Meiryo,sans-serif; }
 .page-card--planned { opacity:.55; }
 
-.page-hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,.47fr); gap:clamp(35px,9vw,145px); align-items:end; padding:clamp(54px,8vw,120px) clamp(18px,8vw,125px) clamp(37px,5vw,70px); background:var(--black); }
+.page-hero { padding:clamp(54px,8vw,120px) clamp(18px,8vw,125px) clamp(37px,5vw,70px); background:var(--black); }
 .page-hero h1 { font-size:clamp(30px,3.8vw,52px); line-height:1.02; letter-spacing:-.07em; }
 .page-hero--events h1 { color:var(--white); }
+.hero-copy { max-width:650px; margin-top:22px; }
 .hero-copy > p { margin:0; font-size:15px; }
 .event-summary { display:flex; gap:26px; margin:32px 0 0; padding-top:14px; border-top:1px solid var(--line); }
 .event-summary div { min-width:90px; }
 .event-summary dt { color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; letter-spacing:.07em; }
 .event-summary dd { margin:2px 0 0; font:800 28px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.06em; }
 
-.event-controls { padding:18px clamp(18px,8vw,125px) 30px; background:var(--black); }
+.event-controls,.song-controls { border-top:1px solid rgba(255,255,255,.28); border-bottom:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.025); }
+.event-controls { padding:20px clamp(18px,8vw,125px) 23px; }
 .filter-toolbar { display:flex; align-items:end; justify-content:space-between; gap:20px; }
 .filter-toolbar .eyebrow { margin-bottom:5px; }
 .filter-toolbar h2 { margin:0; font:800 clamp(23px,3vw,34px)/1.05 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.07em; }
@@ -109,14 +111,15 @@ main { max-width:var(--max); margin:auto; }
 .event-flag select:focus { background:var(--white); color:var(--black); }
 .visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
-.event-layout { display:grid; grid-template-columns:minmax(250px,.32fr) minmax(0,1fr); align-items:start; gap:clamp(22px,4vw,56px); background:var(--black); }
-.event-years { position:sticky; top:63px; max-height:calc(100vh - 63px); overflow-x:hidden; overflow-y:auto; padding:29px 0 36px clamp(18px,4vw,60px); background:var(--black); }
-.year-nav { display:grid; gap:5px; margin-top:12px; }
-.year-nav button { display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; padding:10px 14px; border:0; border-radius:3px; background:#111; color:var(--white); cursor:pointer; text-align:left; transition:background .16s ease,color .16s ease,transform .16s ease; }
-.year-nav button[aria-current="true"],.year-nav button:hover { background:var(--white); color:var(--black); transform:translateX(3px); }
+.event-layout { background:var(--black); }
+.event-years { position:sticky; top:63px; z-index:20; display:flex; align-items:center; gap:15px; padding:13px clamp(18px,8vw,125px); border-bottom:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.96); backdrop-filter:blur(14px); }
+.event-years .eyebrow { flex:0 0 auto; margin:0; }
+.year-nav { display:flex; flex-wrap:wrap; gap:5px; margin:0; }
+.year-nav button { display:flex; justify-content:space-between; align-items:center; gap:10px; width:auto; padding:7px 10px; border:0; border-radius:3px; background:#111; color:var(--white); cursor:pointer; text-align:left; transition:background .16s ease,color .16s ease,transform .16s ease; }
+.year-nav button[aria-current="true"],.year-nav button:hover { background:var(--white); color:var(--black); transform:translateY(-1px); }
 .year-nav span { font:700 13px/1.4 "Meiryo UI",Meiryo,sans-serif; }
 .year-nav b { color:inherit; font:10px "Meiryo UI",Meiryo,sans-serif; }
-.event-results { min-height:740px; padding:32px clamp(18px,5vw,82px) 95px 0; }
+.event-results { min-height:740px; padding:32px clamp(18px,8vw,125px) 95px; }
 .results-header { padding:0 0 8px; }
 .results-header h2 { margin:0; font:800 clamp(25px,2.8vw,39px)/1.08 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.065em; }
 .results-header p:last-child { max-width:580px; margin:14px 0 0; color:var(--subtle); font-size:12px; }
@@ -181,7 +184,7 @@ main { max-width:var(--max); margin:auto; }
 
 .song-summary { gap:20px; }
 .song-summary div { min-width:64px; }
-.song-controls { display:grid; grid-template-columns:minmax(180px,.5fr) minmax(0,1fr); gap:clamp(24px,6vw,90px); align-items:end; padding:18px clamp(18px,8vw,125px) 35px; background:var(--black); }
+.song-controls { display:grid; grid-template-columns:1fr; gap:15px; align-items:end; padding:20px clamp(18px,8vw,125px) 23px; }
 .song-controls-copy .eyebrow { margin-bottom:5px; }
 .song-controls-copy h2 { margin:0; font:800 clamp(23px,3vw,34px)/1.05 "Meiryo UI",Meiryo,sans-serif; letter-spacing:-.07em; }
 .song-controls-copy p:last-child { margin:7px 0 0; color:var(--subtle); font-size:11px; }
@@ -245,12 +248,9 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .filter-logic-group + .filter-category,.filter-logic-group + .filter-category + .filter-category { border-right:0; }
   .event-filters { grid-template-columns:1fr; }
   .event-filter-menu { min-width:0; }
-  .event-layout { display:block; }
-  .event-years { position:static; max-height:none; padding:24px 18px 0; }
-  .year-nav { grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
-  .year-nav button { min-height:42px; padding:9px 8px; }
-  .year-nav button[data-year="all"] { grid-column:1 / -1; }
-  .year-nav button[aria-current="true"],.year-nav button:hover { padding-left:8px; }
+  .event-years { position:sticky; gap:12px; padding:11px 18px; overflow-x:auto; }
+  .year-nav { flex-wrap:nowrap; }
+  .year-nav button { flex:0 0 auto; min-height:34px; padding:7px 9px; white-space:nowrap; }
   .year-nav b { display:none; }
   .event-results { min-height:600px; padding:29px 18px 65px; }
   .song-controls { grid-template-columns:1fr; padding:22px 18px 28px; }
