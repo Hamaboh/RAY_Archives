@@ -47,9 +47,78 @@ const limitedArtistOrder = [
 ];
 const typeOrder = ['オリジナル', 'カバー', 'アレンジ'];
 const artistOrder = document.body.dataset.artistOrder === 'limited' ? limitedArtistOrder : originalArtistOrder;
+const originalFormFilterOptions = [
+  'RAY',
+  'RAY Acoustic Set',
+  'RAY BAND SET',
+  'RAY FEEDBACK SET',
+  'RAY Percussion Set',
+  'DJ RAYちゃんず',
+  'RAYCHANZWERK SET',
+  'EXPERIMENTAL VJ SET',
+  'RAY GROOVE SET',
+  'RAY MOSH SET',
+  'RAYPHEX TWIN（RAY IDM SET）',
+  '内山結愛',
+  '内山結愛弾き語り',
+  '内山結愛 Acoustic Set',
+  '甲斐莉乃',
+  '甲斐莉乃生誕バンド',
+  '白川さやか',
+  '琴山しずく',
+  '琴山しずく弾き語り',
+  '琴山しずく生誕バンド「コットリアン」',
+  '琴山しずく TECHNO SET',
+  'hypermoshkotto',
+  '月海まお',
+  '月海まお弾き語り',
+  '紬実詩',
+  '紬実詩 Acoustic Set',
+  '春音友希',
+  'のうまらいず',
+];
+const limitedFormFilterOptions = [
+  'RAY',
+  'EXPERIMENTAL VJ SET',
+  'DJ RAYちゃんず',
+  'RAYCHANZWERK SET',
+  'RAY GROOVE SET',
+  'RAY MOSH SET',
+  'RAYPHEX TWIN（RAY IDM SET）',
+  '内山結愛',
+  'DJ内山結愛',
+  '甲斐莉乃',
+  '甲斐莉乃生誕バンド',
+  '白川さやか',
+  '月日',
+  '琴山しずく',
+  '琴山しずく弾き語り',
+  '琴山しずく生誕バンド「コットリアン」',
+  'DJ琴山しずく',
+  'hypermoshkotto',
+  '愛海',
+  '月海まお',
+  '月海まお弾き語り',
+  'DJ月海まお',
+  '月海まお NOISE SET / Noise(BoB).',
+  '紬実詩',
+  'DJ紬実詩 / DJ酸辣湯麺',
+  '春音友希',
+  'のうまらいず',
+];
+const formFilterOptions = document.body.dataset.formFilterProfile === 'limited' ? limitedFormFilterOptions : originalFormFilterOptions;
+const formFilterAliases = new Map([
+  ['月海まお NOISE SET / Noise(BoB).', ['月海まお NOISE SET', 'Noise(BoB).']],
+  ['DJ紬実詩 / DJ酸辣湯麺', ['DJ紬実詩', 'DJ酸辣湯麺']],
+]);
 
 function optionMarkup(value) { return `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`; }
 function isSame(value, filter) { return !filter || value === filter; }
+function formMatches(value, filter) {
+  if (!filter) return true;
+  const aliases = formFilterAliases.get(filter) || [filter];
+  return normalise(value).split(',').map((item) => item.trim()).some((item) => aliases.includes(item));
+}
 function orderedValues(values, preferredOrder) {
   const available = new Set(values);
   return [...preferredOrder.filter((value) => available.has(value)), ...values.filter((value) => !preferredOrder.includes(value)).sort((first, second) => first.localeCompare(second, 'ja'))];
@@ -108,7 +177,7 @@ function filteredSongs() {
   const query = normalise(search.value).toLocaleLowerCase('ja-JP');
   return songs.filter((song) => {
     const searchable = (searchScope === 'title' ? [song.title] : [song.originalArtist, song.lyrics, song.composition, song.arrangement, song.choreography, song.alternateVersion]).join(' ').toLocaleLowerCase('ja-JP');
-    return (!query || searchable.includes(query)) && isSame(song.artist, artistFilter.value) && isSame(song.form, formFilter.value) && isSame(song.type, typeFilter.value);
+    return (!query || searchable.includes(query)) && isSame(song.artist, artistFilter.value) && formMatches(song.form, formFilter.value) && isSame(song.type, typeFilter.value);
   });
 }
 function renderSongs() {
@@ -128,10 +197,9 @@ function renderSongs() {
 }
 function initialise() {
   const artists = orderedValues([...new Set(songs.map((song) => song.artist).filter(isValue))], artistOrder);
-  const forms = orderedValues([...new Set(songs.map((song) => song.form).filter(isValue))], []);
   const types = orderedValues([...new Set(songs.map((song) => song.type).filter(isValue))], typeOrder);
   artistFilter.insertAdjacentHTML('beforeend', artists.map(optionMarkup).join(''));
-  formFilter.insertAdjacentHTML('beforeend', forms.map(optionMarkup).join(''));
+  formFilter.insertAdjacentHTML('beforeend', formFilterOptions.map(optionMarkup).join(''));
   typeFilter.insertAdjacentHTML('beforeend', types.map(optionMarkup).join(''));
   total.textContent = songs.length.toLocaleString('ja-JP');
   artistTotal.textContent = artists.length.toLocaleString('ja-JP');
