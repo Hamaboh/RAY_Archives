@@ -21,6 +21,11 @@ const regimeOptions = [
 ];
 const julyThreePersonSongs = new Set(['わたし夜に泳ぐの', 'バタフライエフェクト', 'スライド', 'ネモフィラ', 'レジグナチオン', 'サテライト', '愛はどこいったの？', 'サイン', '17', 'GENERATION', 'オールニードイズラブ', 'コハルヒ']);
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
+const correctedArtist = (entry) => (
+  entry.date === '2021-02-23T17:00' && entry.song === 'ダイヤモンドリリー'
+    ? '白川さやか'
+    : entry.artist
+);
 
 function dateLabel(value) {
   const [date, time = ''] = value.split('T');
@@ -136,7 +141,7 @@ function bindChartTooltip() {
     }).map(({ song, counts, points }) => {
       const nearestIndex = points.reduce((nearest, candidate, index) => Math.abs(candidate.x - point.x) < Math.abs(points[nearest].x - point.x) ? index : nearest, 0);
       return { song, count: counts[nearestIndex] ?? 0 };
-    }).filter(({ song }) => song);
+    }).filter(({ song, count }) => song && count > 0);
   };
   const positionTooltip = (event) => {
     const bounds = scroll.getBoundingClientRect();
@@ -243,7 +248,9 @@ try {
   const response = await fetch('../data/setlist-statistics.json', { cache: 'no-cache' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const source = await response.json();
-  const entries = withBoundaryOccurrences((source.entries ?? []).filter((entry) => entry.date && entry.artist && entry.form && entry.statisticSong));
+  const entries = withBoundaryOccurrences((source.entries ?? [])
+    .map((entry) => ({ ...entry, artist: correctedArtist(entry) }))
+    .filter((entry) => entry.date && entry.artist && entry.form && entry.statisticSong));
   if (!entries.length) {
     heading.textContent = '統計対象のセットリストはありません';
     description.textContent = 'スプレッドシートの「統計対象」が TRUE のレコードを表示します。';

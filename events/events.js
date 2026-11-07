@@ -1,6 +1,9 @@
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 const canonicaliseText = (value) => String(value ?? '').replaceAll('紬実氏', '紬実詩');
+const setlistArtistCorrection = (date, song, artist) => (
+  date === '2021-02-23T17:00' && song === 'ダイヤモンドリリー' ? '白川さやか' : artist
+);
 const normalise = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const inline = (value) => normalise(value).replace(/,\s+/g, ', ');
 const splitValues = (value) => String(value ?? '').split(/,\s*/).map((item) => item.trim()).filter((item) => item && item !== '-');
@@ -74,7 +77,7 @@ function canonicaliseEvent(event) {
   });
   corrected.setlists = (event.setlists ?? []).map((setlist) => ({
     ...setlist,
-    artist: canonicaliseText(setlist.artist),
+    artist: canonicaliseText(setlistArtistCorrection(event.date, setlist.song, setlist.artist)),
     form: canonicaliseText(setlist.form),
     type: canonicaliseText(setlist.type),
     order: canonicaliseText(setlist.order),
