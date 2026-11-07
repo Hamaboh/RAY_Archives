@@ -2,6 +2,26 @@ import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
 
 const outputPath = new URL('../data/events.json', import.meta.url);
+const statisticsOutputPath = new URL('../data/setlist-statistics.json', import.meta.url);
+
+// 統計ページで同一曲として集計する表記ゆれ・派生バージョン。
+// 明示的に列挙していない Remix 等は、楽曲名単位で独立して扱う。
+const statisticSongAliases = new Map([
+  ['Fading Lights（English ver.）', 'Fading Lights'],
+  ['サテライト（Doom ver.）', 'サテライト'],
+  ['フロンティア サインREMIX', 'フロンティア'],
+  ['See ya! サインREMIX', 'See ya!'],
+  ['17 サインREMIX', '17'],
+  ['See ya!（RAYCHANZWERK SET）', 'See ya!'],
+  ['See ya!（RAYCHANZWERK SET REMIX）', 'See ya!'],
+  ['サイン（RAYCHANZWERK SET）', 'サイン'],
+  ['サイン（RAYCHANZWERK SET REMIX）', 'サイン'],
+  ['フロンティア（RAYCHANZWERK SET）', 'フロンティア'],
+  ['フロンティア（RAYCHANZWERK SET REMIX）', 'フロンティア'],
+  ['See ya!（Born Slippy Remix）', 'See ya!'],
+  ['See ya!（RAYPHEX TWIN Remix）', 'See ya!'],
+  ['See ya! - SKUMSCAMSCUM Remix', 'See ya!'],
+]);
 
 function parseTsv(input) {
   const rows = [];
@@ -22,6 +42,7 @@ function parseTsv(input) {
 }
 
 function clean(value) { return String(value ?? '').replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim().replaceAll('紬実氏', '紬実詩'); }
+function isTrue(value) { return /^true$/i.test(clean(value)); }
 function dateKey(value) {
   const japanese = clean(value).match(/^(\d{4})年(\d{1,2})月(\d{1,2})日(?:(\d{1,2})時(?:(\d{1,2})分)?)?$/);
   const numeric = clean(value).match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::\d{2})?)?$/);
@@ -41,6 +62,7 @@ async function importRows(tsv) {
 
   const value = (row, label) => clean(row[index[label]]);
   const setlistsByDate = new Map();
+  const statisticsEntries = [];
   let setlistRows = 0;
   rows.forEach((row) => {
     const date = dateKey(value(row, '開催日時'));
@@ -57,6 +79,13 @@ async function importRows(tsv) {
     items.push(setlist);
     setlistsByDate.set(date, items);
     setlistRows += 1;
+    if (isTrue(value(row, '統計対象'))) {
+      statisticsEntries.push({
+        date,
+        song,
+        statisticSong: statisticSongAliases.get(song) ?? song,
+      });
+    }
   });
   const archive = JSON.parse(await readFile(outputPath, 'utf8'));
   let matchedEvents = 0;
@@ -70,7 +99,14 @@ async function importRows(tsv) {
   archive.setlistsSource = 'Google スプレッドシート「セットリスト」';
   archive.setlistsSyncedAt = new Date().toISOString();
   await writeFile(outputPath, `${JSON.stringify(archive)}\n`, 'utf8');
-  return { eventRecords: archive.events.length, setlistRows, matchedEvents, unmatchedDates: unmatchedDates.length, firstUnmatchedDate: unmatchedDates[0] ?? null };
+  const statistics = {
+    source: 'Google スプレッドシート「セットリスト」',
+    sourceSyncedAt: archive.setlistsSyncedAt,
+    scope: '「統計対象」が TRUE のレコード',
+    entries: statisticsEntries.sort((first, second) => first.date.localeCompare(second.date, 'ja') || first.statisticSong.localeCompare(second.statisticSong, 'ja')),
+  };
+  await writeFile(statisticsOutputPath, `${JSON.stringify(statistics)}\n`, 'utf8');
+  return { eventRecords: archive.events.length, setlistRows, matchedEvents, unmatchedDates: unmatchedDates.length, firstUnmatchedDate: unmatchedDates[0] ?? null, statisticsEntries: statistics.entries.length, statisticSongs: new Set(statistics.entries.map((entry) => entry.statisticSong)).size };
 }
 
 const server = createServer(async (request, response) => {

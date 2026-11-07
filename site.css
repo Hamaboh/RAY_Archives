@@ -231,6 +231,25 @@ main { max-width:var(--max); margin:auto; }
 .song-card:hover .song-event-link { border-color:rgba(0,0,0,.45); color:var(--black); }
 .song-card:hover .song-event-link:hover,.song-card:hover .song-event-link:focus-visible { background:var(--black); color:var(--white); }
 
+.page-hero--statistics .hero-copy { max-width:670px; margin:22px 0 0; font-size:15px; }
+.statistics-results { min-height:680px; padding:32px clamp(18px,8vw,125px) 95px; background:var(--black); }
+.statistics-results .results-header { max-width:670px; }
+.statistics-note { margin:28px 0 11px; color:var(--subtle); font-size:11px; }
+.statistics-chart-scroll { overflow-x:auto; padding:12px 0 8px; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.2); scrollbar-color:rgba(255,255,255,.45) transparent; }
+.statistics-chart svg { display:block; min-width:840px; }
+.statistics-grid line { stroke:rgba(255,255,255,.17); stroke-width:1; }
+.statistics-grid text,.statistics-date { fill:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
+.statistics-axis { stroke:rgba(255,255,255,.58); stroke-width:1; }
+.statistics-series { color:var(--series); transition:opacity .16s ease; }
+.statistics-series polyline { fill:none; stroke:var(--series); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.statistics-series circle { fill:var(--series); stroke:var(--black); stroke-width:1; }
+.statistics-series.is-hidden { opacity:.08; }
+.statistics-legend { display:flex; flex-wrap:wrap; gap:5px 7px; margin:14px 0 0; padding:0; list-style:none; }
+.statistics-legend button { display:flex; align-items:center; gap:6px; padding:4px 6px; border:1px solid rgba(255,255,255,.24); border-radius:2px; background:transparent; color:var(--white); cursor:pointer; font:10px/1.25 "Meiryo UI",Meiryo,sans-serif; text-align:left; }
+.statistics-legend button:hover,.statistics-legend button:focus-visible { border-color:var(--white); outline:0; }
+.statistics-legend button[aria-pressed="false"] { opacity:.38; text-decoration:line-through; }
+.statistics-legend i { display:block; flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:var(--series); }
+
 footer { display:flex; justify-content:space-between; gap:20px; padding:20px clamp(18px,4vw,60px); border-top:1px solid var(--white); background:var(--black); color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; }
 footer p { margin:0; }
 footer a { color:var(--white); text-decoration:underline; text-underline-offset:4px; }
@@ -264,6 +283,7 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .song-search { grid-column:1 / -1; }
   .song-search-scope { grid-column:1 / -1; }
   .song-results { min-height:0; padding:28px 18px 70px; }
+  .statistics-results { min-height:0; padding:28px 18px 70px; }
   .song-card-main { grid-template-columns:minmax(90px,.5fr) minmax(0,1.5fr) minmax(82px,.42fr); gap:9px 12px; }
   .song-meta div:last-child { grid-column:3; }
   .event-month { margin-top:25px; }
