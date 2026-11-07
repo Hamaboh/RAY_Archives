@@ -20,6 +20,7 @@ const flagColumns = {
   'RAY/代代代/クロスノエシス 3WAY SPLIT『ATMOSPHERE』ALMOST TRANSPARENT': 'atmosphere',
   '内山結愛 presents「tie in reaction」': 'tieInReaction',
   'RAY×BELRING少女ハート SPLIT TOUR NO MY WAY': 'noMyWay',
+  'RAY×BELLRING少女ハート SPLIT TOUR NO MY WAY': 'noMyWay',
   'RAY BAND SET': 'bandSet',
   'RAY FEEDBACK SET': 'feedbackSet',
   'RAY Percussion Set': 'percussionSet',
@@ -80,9 +81,11 @@ async function importRows(tsv) {
   const existingByEvent = new Map((existing.events ?? []).map((event) => [`${event.date}\u0000${event.title}`, event]));
   const [header, ...rows] = parseTsv(tsv);
   const index = {};
+  const indexes = {};
   header.forEach((label, column) => {
     const key = clean(label);
     if (!(key in index)) index[key] = column;
+    (indexes[key] ??= []).push(column);
   });
   const required = ['開催日時', '公演名', '会場', '予約特典', '料金', 'D代', '出演者', '衣装', '共演者', 'イベントURL', '備考'];
   const missing = required.filter((label) => !(label in index));
@@ -95,7 +98,7 @@ async function importRows(tsv) {
     if (!base || !title) return null;
     const previous = existingByEvent.get(`${base.date}\u0000${title}`);
     const flags = Object.fromEntries(Object.entries(flagColumns)
-      .filter(([label]) => label in index && isTrue(value(row, label)))
+      .filter(([label]) => (indexes[label] ?? []).some((column) => isTrue(row[column])))
       .map(([, key]) => [key, true]));
     return {
       ...base,
@@ -117,7 +120,7 @@ async function importRows(tsv) {
       status: flags.cancelled ? 'cancelled' : flags.postponed ? 'postponed' : '',
     };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date, 'ja') || a.title.localeCompare(b.title, 'ja'));
-  const sourceFlagKeys = Object.entries(flagColumns).filter(([label]) => label in index).map(([, key]) => key);
+  const sourceFlagKeys = [...new Set(Object.entries(flagColumns).filter(([label]) => label in indexes).map(([, key]) => key))];
   await writeFile(outputPath, `${JSON.stringify({ source: 'Google スプレッドシート「イベント出演情報」', sourceSyncedAt: new Date().toISOString(), sourceFlagKeys, events })}\n`, 'utf8');
   return { events: events.length, first: events[0]?.date, last: events.at(-1)?.date, sourceFlagKeys };
 }
