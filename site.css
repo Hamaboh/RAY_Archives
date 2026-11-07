@@ -255,6 +255,9 @@ main { max-width:var(--max); margin:auto; }
 .statistics-filter-tab { min-height:31px; padding:6px 10px; border:1px solid rgba(255,255,255,.26); border-radius:2px; background:transparent; color:var(--subtle); cursor:pointer; font:11px/1.15 "Meiryo UI",Meiryo,sans-serif; transition:background .14s ease,border-color .14s ease,color .14s ease; }
 .statistics-filter-tab:hover,.statistics-filter-tab:focus-visible { border-color:rgba(255,255,255,.8); color:var(--white); outline:0; }
 .statistics-filter-tab[aria-pressed="true"] { border-color:var(--white); background:var(--white); color:var(--black); }
+.statistics-form-select { width:min(100%,420px); min-height:34px; padding:6px 32px 6px 10px; border:1px solid rgba(255,255,255,.32); border-radius:2px; background:var(--black); color:var(--white); font:11px/1.2 "Meiryo UI",Meiryo,sans-serif; }
+.statistics-form-select:hover,.statistics-form-select:focus-visible { border-color:var(--white); outline:0; }
+.statistics-form-select option { background:var(--black); color:var(--white); }
 .statistics-filter-copy { margin:0; color:var(--subtle); font-size:10px; line-height:1.7; }
 .statistics-table-section { margin-top:30px; padding-top:18px; border-top:1px solid rgba(255,255,255,.32); }
 .statistics-table-heading { display:flex; align-items:baseline; justify-content:space-between; gap:18px; margin-bottom:10px; }
