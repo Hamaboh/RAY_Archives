@@ -21,14 +21,57 @@ const empty = $('#song-empty');
 let songs = [];
 let searchScope = 'title';
 
-const artistOrder = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '琴山しずく', '月海まお', 'RAY, BELLRING少女ハート', 'のうまらいず'];
+const originalArtistOrder = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '琴山しずく', '月海まお', 'RAY, BELLRING少女ハート', 'のうまらいず'];
+const limitedArtistOrder = [
+  'RAY',
+  '内山結愛',
+  '甲斐莉乃',
+  '白川さやか',
+  '月日',
+  '琴山しずく',
+  '愛海',
+  '月海まお',
+  '紬実詩',
+  '内山結愛, 甲斐莉乃',
+  '内山結愛, 甲斐莉乃, 月日',
+  '内山結愛, 琴山しずく',
+  '内山結愛, 月海まお, 紬実詩',
+  '内山結愛, 紬実詩',
+  '内山結愛, 春音友希',
+  '甲斐莉乃, 白川さやか',
+  '月日, 琴山しずく',
+  '琴山しずく, 愛海, 月海まお, 紬実詩',
+  '琴山しずく, 紬実詩',
+  '月海まお, 紬実詩',
+];
 const typeOrder = ['オリジナル', 'カバー', 'アレンジ'];
+const artistOrder = document.body.dataset.artistOrder === 'limited' ? limitedArtistOrder : originalArtistOrder;
 
 function optionMarkup(value) { return `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`; }
 function isSame(value, filter) { return !filter || value === filter; }
 function orderedValues(values, preferredOrder) {
   const available = new Set(values);
   return [...preferredOrder.filter((value) => available.has(value)), ...values.filter((value) => !preferredOrder.includes(value)).sort((first, second) => first.localeCompare(second, 'ja'))];
+}
+function canonicalLimitedArtist(value) {
+  if (document.body.dataset.artistOrder !== 'limited' || !isValue(value)) return value;
+  const parts = normalise(value).split(',').map((part) => part.trim()).filter(Boolean);
+  const canonical = limitedArtistOrder.find((candidate) => {
+    const candidateParts = candidate.split(',').map((part) => part.trim());
+    return candidateParts.length === parts.length && candidateParts.every((part) => parts.includes(part));
+  });
+  return canonical || value;
+}
+function commaBreakMarkup(value) {
+  return escapeHtml(value).replace(/,\s*/g, ',<br>');
+}
+function compareArtists(first, second) {
+  if (first === 'アーティスト未登録') return 1;
+  if (second === 'アーティスト未登録') return -1;
+  const firstIndex = artistOrder.indexOf(first);
+  const secondIndex = artistOrder.indexOf(second);
+  if (firstIndex !== -1 || secondIndex !== -1) return (firstIndex === -1 ? Infinity : firstIndex) - (secondIndex === -1 ? Infinity : secondIndex);
+  return first.localeCompare(second, 'ja');
 }
 function updateSearchScope() {
   const isTitle = searchScope === 'title';
@@ -51,9 +94,9 @@ function creditsMarkup(song) {
   return `<details class="song-credits"><summary>クレジットを見る</summary><dl>${credits.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}</dl></details>`;
 }
 function songMarkup(song) {
-  // RAY単独の披露も、活動形態として明示する。
-  const form = song.form === 'RAY' || song.form !== song.artist ? song.form : '';
-  return `<article class="song-card"><div class="song-card-main"><p class="song-date">${escapeHtml(humanDate(song))}</p><h3>${escapeHtml(song.title)}</h3><dl class="song-meta"><div><dt>種別</dt><dd>${escapeHtml(song.type || '—')}</dd></div>${form ? `<div><dt>活動形態</dt><dd>${escapeHtml(form)}</dd></div>` : ''}</dl></div>${creditsMarkup(song)}</article>`;
+  // 単独・複数を問わず、活動形態を明示する。未登録時のみアーティスト名を補う。
+  const form = isValue(song.form) ? song.form : (isValue(song.artist) ? song.artist : '');
+  return `<article class="song-card"><div class="song-card-main"><p class="song-date">${escapeHtml(humanDate(song))}</p><h3>${escapeHtml(song.title)}</h3><dl class="song-meta"><div><dt>種別</dt><dd>${escapeHtml(song.type || '—')}</dd></div>${form ? `<div><dt>活動形態</dt><dd>${commaBreakMarkup(form)}</dd></div>` : ''}</dl></div>${creditsMarkup(song)}</article>`;
 }
 function filteredSongs() {
   const query = normalise(search.value).toLocaleLowerCase('ja-JP');
@@ -74,7 +117,7 @@ function renderSongs() {
     if (!artists.has(key)) artists.set(key, []);
     artists.get(key).push(song);
   });
-  list.innerHTML = [...artists.entries()].sort(([first], [second]) => first === 'アーティスト未登録' ? 1 : second === 'アーティスト未登録' ? -1 : first.localeCompare(second, 'ja')).map(([artist, entries]) => `<section class="song-artist"><header><h3>${escapeHtml(artist)}</h3><span>${entries.length} SONGS</span></header><div class="song-cards">${entries.map(songMarkup).join('')}</div></section>`).join('');
+  list.innerHTML = [...artists.entries()].sort(([first], [second]) => compareArtists(first, second)).map(([artist, entries]) => `<section class="song-artist"><header><h3>${escapeHtml(artist)}</h3><span>${entries.length} SONGS</span></header><div class="song-cards">${entries.map(songMarkup).join('')}</div></section>`).join('');
   empty.hidden = visible.length !== 0;
 }
 function initialise() {
@@ -99,7 +142,7 @@ function initialise() {
 try {
   const response = await fetch(document.body.dataset.songSource || '../data/songs.json', { cache: 'no-cache' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  songs = ((await response.json()).songs ?? []).map((song) => ({ ...song, title: normalise(song.title), artist: normalise(song.artist), form: normalise(song.form), type: normalise(song.type) }));
+  songs = ((await response.json()).songs ?? []).map((song) => ({ ...song, title: normalise(song.title), artist: canonicalLimitedArtist(normalise(song.artist)), form: normalise(song.form), type: normalise(song.type) }));
   initialise();
 } catch (error) {
   console.error(error);
