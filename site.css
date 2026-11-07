@@ -244,7 +244,7 @@ main { max-width:var(--max); margin:auto; }
 .statistics-series-line { fill:none; stroke:var(--series); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; pointer-events:none; }
 .statistics-series-hit { fill:none; stroke:transparent; stroke-width:12; stroke-linejoin:round; stroke-linecap:round; cursor:default; }
 .statistics-series circle { fill:var(--series); stroke:var(--black); stroke-width:1.2; }
-.statistics-tooltip { position:absolute; z-index:2; max-width:min(270px,calc(100% - 20px)); max-height:min(48vh,310px); overflow:hidden; padding:7px 10px; border:1px solid rgba(164,195,255,.95); border-left:3px solid #7aa5ff; border-radius:6px; background:linear-gradient(135deg,#f4f7ff 0%,#dbe8ff 100%); box-shadow:0 8px 20px rgba(0,0,0,.32),0 1px 0 rgba(255,255,255,.7) inset; color:#18243a; font:400 11px/1.35 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.02em; pointer-events:none; white-space:pre-line; }
+.statistics-tooltip { position:absolute; z-index:2; width:max-content; max-width:none; padding:7px 10px; border:1px solid rgba(164,195,255,.95); border-left:3px solid #7aa5ff; border-radius:6px; background:linear-gradient(135deg,#f4f7ff 0%,#dbe8ff 100%); box-shadow:0 8px 20px rgba(0,0,0,.32),0 1px 0 rgba(255,255,255,.7) inset; color:#18243a; font:400 11px/1.35 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.02em; pointer-events:none; white-space:pre; }
 .statistics-filters { display:grid; gap:17px; margin-top:19px; padding:17px 0 0; border-top:1px solid rgba(255,255,255,.32); }
 .statistics-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .statistics-filter-heading .eyebrow { margin:0; }

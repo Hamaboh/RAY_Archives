@@ -98,7 +98,7 @@ function chartMarkup(model, selectedArtists, selectedForm, selectedRegime, selec
     const color = colors[songIndex % colors.length];
     const points = values.map((point) => `${x(point.index)},${y(point.value)}`).join(' ');
     const markers = values.filter((point) => point.performed).map((point) => `<circle cx="${x(point.index)}" cy="${y(point.value)}" r="2.4"><title>${escapeHtml(`${song} / ${dateLabel(point.date)} / 累計 ${point.value}回`)}</title></circle>`).join('');
-    return `<g class="statistics-series" data-song="${escapeHtml(song)}" style="--series:${color}"><polyline class="statistics-series-hit" points="${points}" /><polyline class="statistics-series-line" points="${points}" />${markers}</g>`;
+    return `<g class="statistics-series" data-song="${escapeHtml(song)}" data-counts="${values.map((point) => point.value).join(',')}" style="--series:${color}"><polyline class="statistics-series-hit" points="${points}" /><polyline class="statistics-series-line" points="${points}" />${markers}</g>`;
   }).join('');
   const labelPitch = 76;
   const maximumLabelCount = Math.max(2, Math.floor((width - left - 24) / labelPitch) + 1);
@@ -121,6 +121,7 @@ function bindChartTooltip() {
   };
   const seriesGeometry = [...chart.querySelectorAll('.statistics-series')].map((series) => ({
     song: series.dataset.song,
+    counts: (series.dataset.counts ?? '').split(',').map(Number),
     points: [...(series.querySelector('.statistics-series-line')?.points ?? [])].map(({ x, y }) => ({ x, y })),
   }));
   const songsAtPointer = (event) => {
@@ -132,25 +133,33 @@ function bindChartTooltip() {
       if (!points.length) return false;
       if (points.length === 1) return Math.hypot(point.x - points[0].x, point.y - points[0].y) <= tolerance;
       return points.slice(1).some((end, index) => distanceToSegment(point, points[index], end) <= tolerance);
-    }).map(({ song }) => song).filter(Boolean);
+    }).map(({ song, counts, points }) => {
+      const nearestIndex = points.reduce((nearest, candidate, index) => Math.abs(candidate.x - point.x) < Math.abs(points[nearest].x - point.x) ? index : nearest, 0);
+      return { song, count: counts[nearestIndex] ?? 0 };
+    }).filter(({ song }) => song);
   };
   const positionTooltip = (event) => {
     const bounds = scroll.getBoundingClientRect();
-    const maxLeft = scroll.scrollLeft + bounds.width - tooltip.offsetWidth - 10;
-    const left = Math.min(maxLeft, Math.max(scroll.scrollLeft + 10, event.clientX - bounds.left + scroll.scrollLeft + 12));
+    const minimumLeft = scroll.scrollLeft + 10;
+    const maximumLeft = scroll.scrollLeft + bounds.width - tooltip.offsetWidth - 10;
+    const cursorLeft = event.clientX - bounds.left + scroll.scrollLeft;
+    const rightAligned = cursorLeft + 12;
+    const leftAligned = cursorLeft - tooltip.offsetWidth - 12;
+    const left = maximumLeft >= minimumLeft ? Math.max(minimumLeft, Math.min(maximumLeft, rightAligned > maximumLeft ? leftAligned : rightAligned)) : minimumLeft;
     const top = Math.max(10, event.clientY - bounds.top - tooltip.offsetHeight - 12);
     tooltip.style.left = `${left}px`;
     tooltip.style.top = `${top}px`;
   };
   const show = (event) => {
     const songs = songsAtPointer(event);
-    tooltip.textContent = (songs.length ? songs : [event.currentTarget.closest('.statistics-series')?.dataset.song]).filter(Boolean).join(',\n');
+    const fallbackSong = event.currentTarget.closest('.statistics-series')?.dataset.song;
+    tooltip.textContent = (songs.length ? songs : fallbackSong ? [{ song: fallbackSong, count: 0 }] : []).map(({ song, count }) => `${song}（${count.toLocaleString('ja-JP')}回）`).join(',\n');
     tooltip.hidden = false;
     positionTooltip(event);
   };
   chart.querySelectorAll('.statistics-series-hit, .statistics-series circle').forEach((target) => {
     target.addEventListener('pointerenter', show);
-    target.addEventListener('pointermove', positionTooltip);
+    target.addEventListener('pointermove', show);
     target.addEventListener('pointerleave', () => { tooltip.hidden = true; });
   });
 }
