@@ -3,6 +3,8 @@ const heading = $('#statistics-heading');
 const description = $('#statistics-description');
 const chart = $('#statistics-chart');
 const empty = $('#statistics-empty');
+let rerenderForViewport = () => {};
+let resizeTimer;
 
 const colors = ['#f5f5f5', '#9fc5ff', '#ffbc8b', '#a8e6c1', '#d8b4fe', '#f7a8c8', '#fbef9a', '#7dd3fc', '#fca5a5', '#c4b5fd', '#86efac', '#fcd34d', '#f0abfc', '#67e8f9', '#fdba74', '#a3e635'];
 const artistOptions = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '琴山しずく', '月海まお'];
@@ -63,13 +65,15 @@ function chartMarkup(model, selectedArtists, selectedForm, selectedYears, forms)
   const left = 50;
   const top = 30;
   const bottom = 82;
-  const height = 840;
+  const graphHeight = Math.min(760, Math.max(460, max * 1.55));
+  const height = top + graphHeight + bottom;
   const pointGap = 4;
-  const width = Math.max(840, left + 24 + Math.max(0, eventDates.length - 1) * pointGap + 45);
-  const graphHeight = height - top - bottom;
+  const viewportWidth = Math.max(320, window.innerWidth || 840);
+  const minimumWidth = Math.max(320, Math.min(960, viewportWidth - 40));
+  const width = Math.max(minimumWidth, left + 24 + Math.max(0, eventDates.length - 1) * pointGap + 45);
   const x = (index) => eventDates.length === 1 ? width - 24 : left + index * ((width - left - 24) / (eventDates.length - 1));
   const y = (value) => top + graphHeight - (value / max) * graphHeight;
-  const tickCount = Math.min(max, 5);
+  const tickCount = Math.max(2, Math.min(max, 8, Math.floor(graphHeight / 105)));
   const ticks = [...new Set([...Array(tickCount + 1)].map((_, index) => Math.round((max / tickCount) * index)))].sort((first, second) => first - second);
   const grid = ticks.map((value) => `<g><line x1="${left}" x2="${width - 24}" y1="${y(value)}" y2="${y(value)}" /><text x="${left - 9}" y="${y(value) + 4}" text-anchor="end">${value}</text></g>`).join('');
   const lines = songs.map((song, songIndex) => {
@@ -77,11 +81,37 @@ function chartMarkup(model, selectedArtists, selectedForm, selectedYears, forms)
     const color = colors[songIndex % colors.length];
     const points = values.map((point) => `${x(point.index)},${y(point.value)}`).join(' ');
     const markers = values.map((point) => `<circle cx="${x(point.index)}" cy="${y(point.value)}" r="2.4"><title>${escapeHtml(`${song} / ${dateLabel(point.date)} / 累計 ${point.value}回`)}</title></circle>`).join('');
-    return `<g class="statistics-series" data-song="${escapeHtml(song)}" style="--series:${color}"><polyline points="${points}" />${markers}</g>`;
+    return `<g class="statistics-series" data-song="${escapeHtml(song)}" style="--series:${color}"><polyline class="statistics-series-hit" points="${points}" /><polyline class="statistics-series-line" points="${points}" />${markers}</g>`;
   }).join('');
-  const labelStep = Math.max(1, Math.ceil((eventDates.length - 1) / 10));
+  const labelPitch = 76;
+  const maximumLabelCount = Math.max(2, Math.floor((width - left - 24) / labelPitch) + 1);
+  const labelStep = eventDates.length <= 1 ? 1 : Math.max(1, Math.ceil((eventDates.length - 1) / (maximumLabelCount - 1)));
   const labels = eventDates.map((date, index) => (index % labelStep === 0 || index === eventDates.length - 1 ? `<text class="statistics-date" x="${x(index)}" y="${height - bottom + 21}" text-anchor="end" transform="rotate(-48 ${x(index)} ${height - bottom + 21})">${dateLabel(date)}</text>` : '')).join('');
-  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。点はその楽曲を披露したイベント、線は点どうしを結んだ累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg></div>${filterMarkup(selectedArtists, selectedForm, selectedYears, forms)}${tableMarkup(model)}`;
+  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。点はその楽曲を披露したイベント、線は点どうしを結んだ累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg><div class="statistics-tooltip" role="status" hidden></div></div>${filterMarkup(selectedArtists, selectedForm, selectedYears, forms)}${tableMarkup(model)}`;
+}
+
+function bindChartTooltip() {
+  const scroll = chart.querySelector('.statistics-chart-scroll');
+  const tooltip = chart.querySelector('.statistics-tooltip');
+  if (!scroll || !tooltip) return;
+  const positionTooltip = (event) => {
+    const bounds = scroll.getBoundingClientRect();
+    const maxLeft = scroll.scrollLeft + bounds.width - tooltip.offsetWidth - 10;
+    const left = Math.min(maxLeft, Math.max(scroll.scrollLeft + 10, event.clientX - bounds.left + scroll.scrollLeft + 12));
+    const top = Math.max(10, event.clientY - bounds.top - tooltip.offsetHeight - 12);
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  };
+  const show = (event) => {
+    tooltip.textContent = event.currentTarget.closest('.statistics-series')?.dataset.song ?? '';
+    tooltip.hidden = false;
+    positionTooltip(event);
+  };
+  chart.querySelectorAll('.statistics-series-hit, .statistics-series circle').forEach((target) => {
+    target.addEventListener('pointerenter', show);
+    target.addEventListener('pointermove', positionTooltip);
+    target.addEventListener('pointerleave', () => { tooltip.hidden = true; });
+  });
 }
 
 function filteredEntries(entries, selectedArtists, selectedForm, selectedYears) {
@@ -89,6 +119,7 @@ function filteredEntries(entries, selectedArtists, selectedForm, selectedYears) 
 }
 
 function render(entries, selectedArtists, selectedForm, selectedYears) {
+  rerenderForViewport = () => render(entries, selectedArtists, selectedForm, selectedYears);
   const forms = formOptions(entries);
   const filtered = filteredEntries(entries, selectedArtists, selectedForm, selectedYears);
   if (!filtered.length) {
@@ -102,6 +133,7 @@ function render(entries, selectedArtists, selectedForm, selectedYears) {
     description.textContent = '披露したイベントだけに点を置き、点どうしを結んで累計披露回数を表示しています。';
     chart.innerHTML = chartMarkup(model, selectedArtists, selectedForm, selectedYears, forms);
     chart.hidden = false;
+    bindChartTooltip();
   }
   chart.querySelectorAll('.statistics-filter-tab').forEach((button) => button.addEventListener('click', () => {
     const target = button.dataset.filterType === 'artist' ? selectedArtists : selectedYears;
@@ -121,6 +153,11 @@ function render(entries, selectedArtists, selectedForm, selectedYears) {
     render(entries, selectedArtists, selectedForm, selectedYears);
   });
 }
+
+window.addEventListener('resize', () => {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(rerenderForViewport, 120);
+});
 
 try {
   const response = await fetch('../data/setlist-statistics.json', { cache: 'no-cache' });

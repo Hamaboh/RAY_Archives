@@ -235,14 +235,16 @@ main { max-width:var(--max); margin:auto; }
 .statistics-results { min-height:680px; padding:32px clamp(18px,8vw,125px) 95px; background:var(--black); }
 .statistics-results .results-header { max-width:670px; }
 .statistics-note { margin:28px 0 11px; color:var(--subtle); font-size:11px; }
-.statistics-chart-scroll { overflow-x:auto; padding:12px 0 8px; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.2); scrollbar-color:rgba(255,255,255,.45) transparent; }
-.statistics-chart svg { display:block; min-width:840px; }
+.statistics-chart-scroll { position:relative; overflow-x:auto; padding:12px 0 8px; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.2); scrollbar-color:rgba(255,255,255,.45) transparent; }
+.statistics-chart svg { display:block; }
 .statistics-grid line { stroke:rgba(255,255,255,.17); stroke-width:1; }
 .statistics-grid text,.statistics-date { fill:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
 .statistics-axis { stroke:rgba(255,255,255,.58); stroke-width:1; }
 .statistics-series { color:var(--series); transition:opacity .16s ease; }
-.statistics-series polyline { fill:none; stroke:var(--series); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.statistics-series-line { fill:none; stroke:var(--series); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; pointer-events:none; }
+.statistics-series-hit { fill:none; stroke:transparent; stroke-width:12; stroke-linejoin:round; stroke-linecap:round; cursor:default; }
 .statistics-series circle { fill:var(--series); stroke:var(--black); stroke-width:1.2; }
+.statistics-tooltip { position:absolute; z-index:2; max-width:min(270px,calc(100% - 20px)); padding:6px 8px; border:1px solid rgba(0,0,0,.82); border-radius:2px; background:var(--white); color:var(--black); font:600 11px/1.3 "Meiryo UI",Meiryo,sans-serif; pointer-events:none; white-space:nowrap; }
 .statistics-filters { display:grid; gap:17px; margin-top:19px; padding:17px 0 0; border-top:1px solid rgba(255,255,255,.32); }
 .statistics-filter-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .statistics-filter-heading .eyebrow { margin:0; }
@@ -263,11 +265,12 @@ main { max-width:var(--max); margin:auto; }
 .statistics-table-heading { display:flex; align-items:baseline; justify-content:space-between; gap:18px; margin-bottom:10px; }
 .statistics-table-heading .eyebrow { margin:0; }
 .statistics-table-heading h3 { margin:0; color:var(--subtle); font:10px "Meiryo UI",Meiryo,sans-serif; font-weight:400; letter-spacing:.06em; }
-.statistics-table-scroll { overflow-x:auto; }
-.statistics-table-scroll table { width:100%; border-collapse:collapse; font:12px/1.45 "Meiryo UI",Meiryo,sans-serif; }
-.statistics-table-scroll th { padding:8px 0; border-bottom:1px solid rgba(255,255,255,.58); color:var(--subtle); font-size:10px; font-weight:400; text-align:left; }
-.statistics-table-scroll td { padding:9px 0; border-bottom:1px solid rgba(255,255,255,.15); }
-.statistics-table-scroll th:last-child,.statistics-table-scroll td:last-child { width:7.5em; text-align:right; white-space:nowrap; }
+.statistics-table-scroll { display:inline-block; max-width:100%; overflow-x:auto; border:1px solid rgba(255,255,255,.48); vertical-align:top; }
+.statistics-table-scroll table { width:max-content; min-width:260px; border-collapse:collapse; font:12px/1.45 "Meiryo UI",Meiryo,sans-serif; }
+.statistics-table-scroll th { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.58); color:var(--subtle); font-size:10px; font-weight:400; text-align:left; white-space:nowrap; }
+.statistics-table-scroll td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+.statistics-table-scroll th + th,.statistics-table-scroll td + td { border-left:1px solid rgba(255,255,255,.18); }
+.statistics-table-scroll th:last-child,.statistics-table-scroll td:last-child { text-align:right; }
 
 footer { display:flex; justify-content:space-between; gap:20px; padding:20px clamp(18px,4vw,60px); border-top:1px solid var(--white); background:var(--black); color:var(--white); font:10px "Meiryo UI",Meiryo,sans-serif; }
 footer p { margin:0; }
