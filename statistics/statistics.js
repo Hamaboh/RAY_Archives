@@ -76,10 +76,29 @@ function filterMarkup(selectedArtists, selectedForm, selectedRegime, selectedYea
   return `<div class="statistics-filters" aria-label="セットリスト統計の絞り込み"><div class="statistics-filter-heading"><p class="eyebrow">FILTER</p><button type="button" class="statistics-filter-clear" ${selectedCount ? '' : 'disabled'}>すべて解除</button></div><section class="statistics-filter-group" aria-labelledby="statistics-artist-filter"><h3 id="statistics-artist-filter">アーティスト</h3><div class="statistics-filter-tabs" role="group" aria-label="アーティストで絞り込む">${filterButtonMarkup(artistOptions, 'artist', selectedArtists)}</div></section><section class="statistics-filter-group" aria-labelledby="statistics-form-filter"><h3 id="statistics-form-filter">形態</h3><select class="statistics-form-select" aria-labelledby="statistics-form-filter"><option value="">すべての形態</option>${forms.map((form) => `<option value="${escapeHtml(form)}" ${form === selectedForm ? 'selected' : ''}>${escapeHtml(form)}</option>`).join('')}</select></section><section class="statistics-filter-group" aria-labelledby="statistics-regime-filter"><h3 id="statistics-regime-filter">体制</h3><select class="statistics-form-select statistics-regime-select" aria-labelledby="statistics-regime-filter"><option value="">すべての体制</option>${regimeOptions.map(({ value, label }) => `<option value="${value}" ${value === selectedRegime ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('')}</select></section><section class="statistics-filter-group" aria-labelledby="statistics-year-filter"><h3 id="statistics-year-filter">時期</h3><div class="statistics-filter-tabs" role="group" aria-label="年で絞り込む">${filterButtonMarkup(years, 'year', selectedYears)}</div></section><p class="statistics-filter-copy">アーティスト内・時期内は複数選択できます。形態と体制は1件のみ選択でき、異なる分類を同時に選んだ場合は AND で絞り込みます。</p></div>`;
 }
 
-function tableMarkup(model) {
-  const rows = model.songs.map((song) => ({ song, count: model.cumulative.get(song).at(-1)?.value ?? 0 }))
-    .sort((first, second) => second.count - first.count || first.song.localeCompare(second.song, 'ja'));
-  return `<section class="statistics-table-section" aria-labelledby="statistics-table-heading"><div class="statistics-table-heading"><p class="eyebrow">TABLE</p><h3 id="statistics-table-heading">表示中の披露回数</h3></div><div class="statistics-table-scroll"><table><thead><tr><th scope="col">楽曲名</th><th scope="col">披露回数</th></tr></thead><tbody>${rows.map(({ song, count }) => `<tr><td>${escapeHtml(song)}</td><td>${count.toLocaleString('ja-JP')}回</td></tr>`).join('')}</tbody></table></div></section>`;
+function artistTables(entries) {
+  const counts = new Map();
+  entries.forEach(({ artist, statisticSong }) => {
+    const key = `${artist}\u0000${statisticSong}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  });
+  const artists = [...new Set(entries.map(({ artist }) => artist))].sort((first, second) => {
+    const firstIndex = artistOptions.indexOf(first);
+    const secondIndex = artistOptions.indexOf(second);
+    return (firstIndex < 0 ? Number.MAX_SAFE_INTEGER : firstIndex) - (secondIndex < 0 ? Number.MAX_SAFE_INTEGER : secondIndex) || first.localeCompare(second, 'ja');
+  });
+  return artists.map((artist) => ({
+    artist,
+    rows: [...counts.entries()]
+      .filter(([key]) => key.startsWith(`${artist}\u0000`))
+      .map(([key, count]) => ({ song: key.slice(artist.length + 1), count }))
+      .sort((first, second) => second.count - first.count || first.song.localeCompare(second.song, 'ja')),
+  }));
+}
+
+function tableMarkup(entries) {
+  const tables = artistTables(entries);
+  return `<section class="statistics-table-section" aria-labelledby="statistics-table-heading"><div class="statistics-table-heading"><p class="eyebrow">TABLE</p><h3 id="statistics-table-heading">出演者別・表示中の披露回数</h3></div><div class="statistics-table-groups">${tables.map(({ artist, rows }) => `<section class="statistics-artist-table" aria-labelledby="statistics-table-${escapeHtml(artist)}"><h4 id="statistics-table-${escapeHtml(artist)}">${escapeHtml(artist)}</h4><div class="statistics-table-scroll"><table><thead><tr><th scope="col">楽曲名</th><th scope="col">披露回数</th></tr></thead><tbody>${rows.map(({ song, count }) => `<tr><td>${escapeHtml(song)}</td><td>${count.toLocaleString('ja-JP')}回</td></tr>`).join('')}</tbody></table></div></section>`).join('')}</div></section>`;
 }
 
 function chartMarkup(model, selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years) {
@@ -109,7 +128,7 @@ function chartMarkup(model, selectedArtists, selectedForm, selectedRegime, selec
   const maximumLabelCount = Math.max(2, Math.floor((width - left - 24) / labelPitch) + 1);
   const labelStep = eventDates.length <= 1 ? 1 : Math.max(1, Math.ceil((eventDates.length - 1) / (maximumLabelCount - 1)));
   const labels = eventDates.map((date, index) => (index % labelStep === 0 || index === eventDates.length - 1 ? `<text class="statistics-date" x="${x(index)}" y="${height - bottom + 21}" text-anchor="end" transform="rotate(-48 ${x(index)} ${height - bottom + 21})">${dateLabel(date)}</text>` : '')).join('');
-  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。各楽曲は原点から開始し、披露前はx軸上を進みます。点は披露したイベント、線は累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg><div class="statistics-tooltip" role="status" hidden></div></div>${filterMarkup(selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years)}${tableMarkup(model)}`;
+  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。各楽曲は原点から開始し、披露前はx軸上を進みます。点は披露したイベント、線は累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg><div class="statistics-tooltip" role="status" hidden></div></div>${filterMarkup(selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years)}${tableMarkup(filtered)}`;
 }
 
 function bindChartTooltip() {
