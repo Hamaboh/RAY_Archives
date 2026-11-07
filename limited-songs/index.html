@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="RAYとメンバーが当日限定で披露したパフォーマンス楽曲をたどれるアーカイブ" />
     <title>限定披露楽曲 — RAY Archives</title>
-    <link rel="stylesheet" href="../site.css?v=20261107-song-pages" />
+    <link rel="stylesheet" href="../site.css?v=20261107-event-links" />
   </head>
-  <body class="songs-page" data-song-source="../data/limited-performances.json" data-date-label="披露日" data-credit-search-label="原曲アーティスト" data-credit-search-placeholder="原曲アーティストを検索" data-artist-order="limited">
+  <body class="songs-page" data-song-source="../data/limited-performances.json" data-date-label="披露日" data-event-link-label="披露したイベントの情報を見る" data-credit-search-label="原曲アーティスト" data-credit-search-placeholder="原曲アーティストを検索" data-artist-order="limited">
     <a class="skip-link" href="#song-results">楽曲一覧へ移動</a>
     <header class="site-header">
       <a class="wordmark" href="../" aria-label="RAY Archives トップ">RAY <span>ARCHIVES</span></a>
@@ -16,7 +16,7 @@
     <main>
       <section class="page-hero page-hero--songs" aria-labelledby="page-title">
         <div><p class="eyebrow">03 / LIMITED PERFORMANCES</p><h1 id="page-title">限定披露楽曲</h1></div>
-        <div class="hero-copy"><p>当日限定で披露されたカバー、アレンジ、パフォーマンスを、アーティスト別・披露日順にたどれます。</p><dl class="event-summary song-summary"><div><dt>SONGS</dt><dd id="song-total">—</dd></div><div><dt>ARTISTS</dt><dd id="artist-total">—</dd></div><div><dt>FORMS</dt><dd id="form-total">—</dd></div></dl></div>
+        <div class="hero-copy"><p>当日限定で披露されたカバー、アレンジ、パフォーマンスを、アーティスト別・披露日順にたどれます。</p><dl class="event-summary song-summary"><div><dt>SONGS</dt><dd id="song-total">—</dd></div><div><dt>ARTISTS</dt><dd id="artist-total">—</dd></div></dl></div>
       </section>
       <section class="song-controls" aria-labelledby="song-filter-heading">
         <div class="song-controls-copy"><p class="eyebrow">FILTER</p><h2 id="song-filter-heading">楽曲を絞り込む</h2><p id="song-filter-status">すべての楽曲を表示</p></div>
@@ -24,6 +24,7 @@
           <label class="song-search"><span>キーワード</span><input id="song-search" type="search" placeholder="楽曲名を検索" autocomplete="off" /></label>
           <fieldset class="song-search-scope"><legend>検索対象</legend><div><button type="button" data-search-scope="title" aria-pressed="true">楽曲名</button><button type="button" data-search-scope="credits" aria-pressed="false">原曲アーティスト</button></div></fieldset>
           <label class="song-select"><span>アーティスト</span><select id="artist-filter"><option value="">すべて</option></select></label>
+          <label class="song-select"><span>活動形態</span><select id="form-filter"><option value="">すべて</option></select></label>
           <label class="song-select"><span>種別</span><select id="type-filter"><option value="">すべて</option></select></label>
         </div>
       </section>
@@ -34,6 +35,6 @@
       </section>
     </main>
     <footer><p>RAY ARCHIVES</p><a href="../">TOPへ戻る ↑</a><a href="../songs/">オリジナル楽曲</a><a href="../events/">イベント出演情報</a></footer>
-    <script type="module" src="../songs/songs.js?v=20261107-activity-form-order"></script>
+    <script type="module" src="../songs/songs.js?v=20261107-event-links"></script>
   </body>
 </html>

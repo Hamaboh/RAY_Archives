@@ -6,6 +6,7 @@ const inline = (value) => normalise(value).replace(/,\s+/g, ', ');
 const splitValues = (value) => String(value ?? '').split(/,\s*/).map((item) => item.trim()).filter((item) => item && item !== '-');
 const monthFormatter = new Intl.DateTimeFormat('ja-JP', { month: 'long' });
 const total = $('#event-total'), yearTotal = $('#year-total'), yearNav = $('#year-nav'), filterPanel = $('#event-filters'), filterStatus = $('#filter-status'), resetFilters = $('#reset-filters'), openFilters = $('#open-filters'), filterCount = $('#filter-count'), filterDialog = $('#event-filter-dialog'), closeFilters = $('#close-filters'), list = $('#event-list'), title = $('#results-title'), kicker = $('#results-kicker'), description = $('#results-description'), empty = $('#empty-state');
+const focusDate = new URLSearchParams(window.location.search).get('datetime');
 let events = [], selectedYear = 'all', filterLogic = 'and';
 
 const performerOptions = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '月日', '琴山しずく', '愛海', '月海まお', '紬実詩', '春音友希', '大黒メロンちゃん', 'ねりね', 'ﾐﾔﾊﾗｸﾝ', '江頭'];
@@ -192,11 +193,8 @@ function eventMatchesFilters(event) {
   return !conditions.length || (filterLogic === 'and' ? conditions.every(Boolean) : conditions.some(Boolean));
 }
 function statusIsVisible(event) { return event.status !== 'postponed' && event.status !== 'cancelled'; }
-function isRegularEvent(event) {
-  return event.status !== 'postponed' && event.status !== 'cancelled';
-}
 function filteredEvents() {
-  return events.filter((event) => (selectedYear === 'all' || String(event.year) === selectedYear) && statusIsVisible(event) && eventMatchesFilters(event));
+  return events.filter((event) => (selectedYear === 'all' || String(event.year) === selectedYear) && (!focusDate || event.date === focusDate) && statusIsVisible(event) && eventMatchesFilters(event));
 }
 function filterSummary(key) {
   const count = filterState[key].size;
@@ -296,15 +294,14 @@ function bindFilters() {
 }
 function renderYears() {
   const years = [...new Set(events.map((event) => String(event.year)))].sort((a, b) => a.localeCompare(b, 'ja'));
-  const regularEvents = events.filter(isRegularEvent);
-  yearNav.innerHTML = [`<button type="button" data-year="all" aria-current="${selectedYear === 'all'}"><span>すべてのイベント出演情報</span><b>${regularEvents.length.toLocaleString('ja-JP')}</b></button>`, ...years.map((year) => `<button type="button" data-year="${year}" aria-current="${selectedYear === year}"><span>${year}</span><b>${regularEvents.filter((event) => String(event.year) === year).length.toLocaleString('ja-JP')}</b></button>`)].join('');
+  yearNav.innerHTML = [`<button type="button" data-year="all" aria-current="${selectedYear === 'all'}"><span>すべてのイベント出演情報</span></button>`, ...years.map((year) => `<button type="button" data-year="${year}" aria-current="${selectedYear === year}"><span>${year}</span></button>`)].join('');
   yearNav.querySelectorAll('button').forEach((button) => button.addEventListener('click', () => { selectedYear = button.dataset.year; renderYears(); renderEvents(); }));
 }
 function renderEvents() {
-  const visible = filteredEvents(), active = activeFilterLabels(), label = selectedYear === 'all' ? '全期間' : `${selectedYear}年`, groups = new Map();
-  kicker.textContent = active.length ? 'FILTERED EVENT RECORDS' : `${label.toUpperCase()} / EVENT RECORDS`;
-  title.textContent = active.length ? `${label}の絞り込み結果` : `${label}のイベント`;
-  description.textContent = `${visible.length.toLocaleString('ja-JP')}件を表示。${active.length ? `「${active.join('・')}」を${filterLogic === 'and' ? 'すべて満たす（AND）' : 'いずれかを満たす（OR）'}条件で絞り込んでいます。` : '開催月ごとに、日付順で表示しています。'}`;
+  const visible = filteredEvents(), active = activeFilterLabels(), label = selectedYear === 'all' ? '全期間' : `${selectedYear}年`, groups = new Map(), isFocused = Boolean(focusDate);
+  kicker.textContent = isFocused ? 'LINKED EVENT RECORD' : active.length ? 'FILTERED EVENT RECORDS' : `${label.toUpperCase()} / EVENT RECORDS`;
+  title.textContent = isFocused ? '該当のイベント' : active.length ? `${label}の絞り込み結果` : `${label}のイベント`;
+  description.textContent = isFocused ? `${visible.length.toLocaleString('ja-JP')}件を表示しています。` : `${visible.length.toLocaleString('ja-JP')}件を表示。${active.length ? `「${active.join('・')}」を${filterLogic === 'and' ? 'すべて満たす（AND）' : 'いずれかを満たす（OR）'}条件で絞り込んでいます。` : '開催月ごとに、日付順で表示しています。'}`;
   visible.forEach((event) => { const key = `${event.year}-${String(event.month).padStart(2, '0')}`; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(event); });
   list.innerHTML = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, 'ja')).map(([key, group]) => { const [year] = key.split('-'); return `<section class="event-month"><header><p>${year}</p><h3>${monthFormatter.format(new Date(`${key}-01T00:00`))}</h3><span>${group.length} EVENTS</span></header><div class="event-records">${group.map(eventMarkup).join('')}</div></section>`; }).join('');
   empty.hidden = visible.length !== 0;
