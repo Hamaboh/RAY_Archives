@@ -311,8 +311,12 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .song-search-scope { grid-column:1 / -1; }
   .song-results { min-height:0; padding:28px 18px 70px; }
   .statistics-results { min-height:0; padding:28px 18px 70px; }
-  .song-card-main { grid-template-columns:minmax(90px,.5fr) minmax(0,1.5fr) minmax(82px,.42fr); gap:9px 12px; }
-  .song-meta div:last-child { grid-column:3; }
+  .song-card-main { grid-template-columns:1fr; align-items:start; gap:9px; }
+  .song-card h3 { order:1; }
+  .song-meta { display:grid; grid-template-columns:1fr; order:2; gap:8px; margin:0; }
+  .song-meta div,.song-meta div:last-child { display:grid; grid-template-columns:76px minmax(0,1fr); grid-column:auto; gap:10px; align-items:baseline; }
+  .song-meta dd { margin:0; }
+  .song-date { order:3; margin-top:1px; }
   .event-month { margin-top:25px; }
   .event-card { grid-template-columns:46px minmax(0,1fr); gap:10px; }
   .event-card time strong { font-size:21px; }

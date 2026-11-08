@@ -39,16 +39,18 @@ function aggregate(entries) {
   const increments = new Map();
   entries.forEach((entry) => increments.set(`${entry.date}\u0000${entry.statisticSong}`, (increments.get(`${entry.date}\u0000${entry.statisticSong}`) ?? 0) + 1));
   const cumulative = new Map(songs.map((song) => [song, []]));
+  let max = 1;
   songs.forEach((song) => {
     let count = 0;
     cumulative.get(song).push({ index: 0, date: eventDates[0], value: 0, performed: false });
     eventDates.forEach((date, index) => {
       const increment = increments.get(`${date}\u0000${song}`) ?? 0;
       count += increment;
+      max = Math.max(max, count);
       cumulative.get(song).push({ index, date, value: count, performed: increment > 0 });
     });
   });
-  return { eventDates, songs, cumulative, max: Math.max(1, ...[...cumulative.values()].flatMap((points) => points.map((point) => point.value))) };
+  return { eventDates, songs, cumulative, max };
 }
 
 function filterButtonMarkup(options, type, selected) {
@@ -125,16 +127,19 @@ function chartMarkup(model, entries, selectedArtists, selectedForm, selectedRegi
   const grid = ticks.map((value) => `<g><line x1="${left}" x2="${width - 24}" y1="${y(value)}" y2="${y(value)}" /><text x="${left - 9}" y="${y(value) + 4}" text-anchor="end">${value}</text></g>`).join('');
   const lines = songs.map((song, songIndex) => {
     const values = cumulative.get(song);
+    // 水平区間の中間点は描画に不要なので省く。全イベント日を持たせるより
+    // SVG の座標数を大幅に抑え、スマートフォンでも安定して描画できる。
+    const plottedValues = values.filter((point, index) => index === 0 || point.performed || index === values.length - 1);
     const color = colors[songIndex % colors.length];
-    const points = values.map((point) => `${x(point.index)},${y(point.value)}`).join(' ');
-    const markers = values.filter((point) => point.performed).map((point) => `<circle cx="${x(point.index)}" cy="${y(point.value)}" r="2.4"><title>${escapeHtml(`${song} / ${dateLabel(point.date)} / 累計 ${point.value}回`)}</title></circle>`).join('');
-    return `<g class="statistics-series" data-song="${escapeHtml(song)}" data-counts="${values.map((point) => point.value).join(',')}" style="--series:${color}"><polyline class="statistics-series-hit" points="${points}" /><polyline class="statistics-series-line" points="${points}" />${markers}</g>`;
+    const points = plottedValues.map((point) => `${x(point.index)},${y(point.value)}`).join(' ');
+    const markers = plottedValues.filter((point) => point.performed).map((point) => `<circle cx="${x(point.index)}" cy="${y(point.value)}" r="2.4" />`).join('');
+    return `<g class="statistics-series" data-song="${escapeHtml(song)}" data-counts="${plottedValues.map((point) => point.value).join(',')}" data-indices="${plottedValues.map((point) => point.index).join(',')}" style="--series:${color}"><polyline class="statistics-series-hit" points="${points}" /><polyline class="statistics-series-line" points="${points}" />${markers}</g>`;
   }).join('');
   const labelPitch = 76;
   const maximumLabelCount = Math.max(2, Math.floor((width - left - 24) / labelPitch) + 1);
   const labelStep = eventDates.length <= 1 ? 1 : Math.max(1, Math.ceil((eventDates.length - 1) / (maximumLabelCount - 1)));
   const labels = eventDates.map((date, index) => (index % labelStep === 0 || index === eventDates.length - 1 ? `<text class="statistics-date" x="${x(index)}" y="${height - bottom + 21}" text-anchor="end" transform="rotate(-48 ${x(index)} ${height - bottom + 21})">${dateLabel(date)}</text>` : '')).join('');
-  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。各楽曲は原点から開始し、披露前はx軸上を進みます。点は披露したイベント、線は累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg><div class="statistics-tooltip" role="status" hidden></div></div>${filterMarkup(selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years)}${tableMarkup(entries)}`;
+  return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。各楽曲は原点から開始し、披露前はx軸上を進みます。点は披露したイベント、線は累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" data-event-count="${eventDates.length}" data-graph-left="${left}" data-graph-right="24" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg><div class="statistics-tooltip" role="status" hidden></div></div>${filterMarkup(selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years)}${tableMarkup(entries)}`;
 }
 
 function bindChartTooltip() {
@@ -149,23 +154,42 @@ function bindChartTooltip() {
     const ratio = denominator ? Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / denominator)) : 0;
     return Math.hypot(point.x - (start.x + dx * ratio), point.y - (start.y + dy * ratio));
   };
+  // SVGPointList は一部のモバイル Safari で反復可能ではないため、標準の
+  // numberOfItems / getItem を使って明示的に配列化する。
+  const toPointArray = (polyline) => {
+    const list = polyline?.points;
+    const points = [];
+    for (let index = 0; index < (list?.numberOfItems ?? 0); index += 1) {
+      const point = list.getItem(index);
+      points.push({ x: point.x, y: point.y });
+    }
+    return points;
+  };
+  const eventCount = Number(svg.dataset.eventCount) || 1;
+  const graphLeft = Number(svg.dataset.graphLeft) || 50;
+  const graphRight = Number(svg.dataset.graphRight) || 24;
   const seriesGeometry = [...chart.querySelectorAll('.statistics-series')].map((series) => ({
     song: series.dataset.song,
     counts: (series.dataset.counts ?? '').split(',').map(Number),
-    points: [...(series.querySelector('.statistics-series-line')?.points ?? [])].map(({ x, y }) => ({ x, y })),
+    indices: (series.dataset.indices ?? '').split(',').map(Number),
+    points: toPointArray(series.querySelector('.statistics-series-line')),
   }));
   const songsAtPointer = (event) => {
     const rect = svg.getBoundingClientRect();
     const viewBox = svg.viewBox.baseVal;
     const point = { x: viewBox.x + (event.clientX - rect.left) * (viewBox.width / rect.width), y: viewBox.y + (event.clientY - rect.top) * (viewBox.height / rect.height) };
     const tolerance = 7 * Math.max(viewBox.width / rect.width, viewBox.height / rect.height);
+    const eventIndex = eventCount === 1 ? 0 : Math.max(0, Math.min(eventCount - 1, Math.round((point.x - graphLeft) / ((viewBox.width - graphLeft - graphRight) / (eventCount - 1)))));
     return seriesGeometry.filter(({ points }) => {
       if (!points.length) return false;
       if (points.length === 1) return Math.hypot(point.x - points[0].x, point.y - points[0].y) <= tolerance;
       return points.slice(1).some((end, index) => distanceToSegment(point, points[index], end) <= tolerance);
-    }).map(({ song, counts, points }) => {
-      const nearestIndex = points.reduce((nearest, candidate, index) => Math.abs(candidate.x - point.x) < Math.abs(points[nearest].x - point.x) ? index : nearest, 0);
-      return { song, count: counts[nearestIndex] ?? 0 };
+    }).map(({ song, counts, indices }) => {
+      let countIndex = 0;
+      indices.forEach((index, current) => {
+        if (index <= eventIndex) countIndex = current;
+      });
+      return { song, count: counts[countIndex] ?? 0 };
     }).filter(({ song, count }) => song && count > 0);
   };
   const positionTooltip = (event) => {
@@ -191,11 +215,9 @@ function bindChartTooltip() {
     tooltip.hidden = false;
     positionTooltip(event);
   };
-  chart.querySelectorAll('.statistics-series-hit, .statistics-series circle').forEach((target) => {
-    target.addEventListener('pointerenter', show);
-    target.addEventListener('pointermove', show);
-    target.addEventListener('pointerleave', () => { tooltip.hidden = true; });
-  });
+  // 系列・点ごとにリスナーを付けない。数千点でもモバイルで軽く保つ。
+  svg.addEventListener('pointermove', show);
+  svg.addEventListener('pointerleave', () => { tooltip.hidden = true; });
 }
 
 function regimeFor(entry) {
