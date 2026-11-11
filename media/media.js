@@ -14,6 +14,7 @@ const description = $('#media-results-description');
 const list = $('#media-list');
 const empty = $('#media-empty');
 const filter = $('#media-filter');
+const artistFilter = $('#media-artist-filter');
 
 function artistMarkup(artists) {
   if (!artists.length) return '';
@@ -36,7 +37,11 @@ function orderByDate(first, second) {
 
 function render(records) {
   const selectedMedium = filter.value;
-  const visible = records.filter((record) => !selectedMedium || mediaLabel(record.medium) === selectedMedium);
+  const selectedArtist = artistFilter.value;
+  const visible = records.filter((record) => (
+    (!selectedMedium || mediaLabel(record.medium) === selectedMedium)
+    && (!selectedArtist || record.artists.includes(selectedArtist))
+  ));
   description.textContent = `${visible.length.toLocaleString('ja-JP')}件を発信日の昇順に表示しています。`;
   list.innerHTML = visible.map(recordMarkup).join('');
   empty.hidden = visible.length !== 0;
@@ -54,10 +59,13 @@ try {
     artists: (record.artists ?? []).map(normalise).filter(Boolean),
   })).sort(orderByDate);
   const mediums = [...new Set(records.map((record) => mediaLabel(record.medium)))].sort((first, second) => first.localeCompare(second, 'ja'));
+  const artists = [...new Set(records.flatMap((record) => record.artists))].sort((first, second) => first.localeCompare(second, 'ja'));
   filter.innerHTML += mediums.map((medium) => `<option value="${escapeHtml(medium)}">${escapeHtml(medium)}</option>`).join('');
+  artistFilter.innerHTML += artists.map((artist) => `<option value="${escapeHtml(artist)}">${escapeHtml(artist)}</option>`).join('');
   title.textContent = 'すべてのメディア情報';
   render(records);
   filter.addEventListener('change', () => render(records));
+  artistFilter.addEventListener('change', () => render(records));
 } catch (error) {
   console.error(error);
   title.textContent = 'メディア情報を読み込めませんでした。';
