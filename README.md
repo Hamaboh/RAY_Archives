@@ -8,6 +8,8 @@
 - `/events/` — イベント出演情報（年・月・キーワードで検索、各記録の詳細表示）
 - `/songs/` — オリジナル楽曲（初披露日・アーティスト・クレジットで閲覧）
 - `/limited-songs/` — 限定披露楽曲（当日限定で披露された楽曲・パフォーマンスを閲覧）
+- `/statistics/` — セットリスト統計（楽曲別の披露回数を閲覧）
+- `/media/` — メディア一覧（記事・配信・投稿を発信日順に閲覧）
 
 ## データ更新
 
@@ -25,9 +27,10 @@ Google スプレッドシートから楽曲情報を更新する場合は、そ�
 ```sh
 IMPORT_PORT=4178 node scripts/import-song-sheet.mjs
 IMPORT_PORT=4179 node scripts/import-limited-performance-sheet.mjs
+IMPORT_PORT=4181 node scripts/import-media-sheet.mjs
 ```
 
-前者は「オリジナル楽曲」、後者は「当日限定パフォーマンス」を、それぞれ `data/songs.json` と `data/limited-performances.json` に同期します。
+前者は「オリジナル楽曲」、後者は「当日限定パフォーマンス」、3つ目は「メディア情報」を、それぞれ `data/songs.json`、`data/limited-performances.json`、`data/media.json` に同期します。
 
 ## 公開
 
