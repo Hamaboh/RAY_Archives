@@ -77,14 +77,19 @@ async function importRows(tsv) {
     const mediums = mediumList(medium);
     const urls = urlList(url);
     const count = Math.max(mediums.length, urls.length, 1);
-    return Array.from({ length: count }, (_, recordIndex) => ({
+    const links = Array.from({ length: count }, (_, linkIndex) => ({
+      medium: mediums[linkIndex] || (mediums.length === 1 ? mediums[0] : medium),
+      url: urls[linkIndex] || (urls.length === 1 ? urls[0] : ''),
+    }));
+    return [{
       ...parseDate(date),
       title,
-      medium: mediums[recordIndex] || (mediums.length === 1 ? mediums[0] : medium),
+      medium: links[0].medium,
       artists: artistList(artist),
-      url: urls[recordIndex] || (urls.length === 1 ? urls[0] : ''),
+      url: links[0].url,
+      links,
       fields,
-    }));
+    }];
   }).sort((first, second) => (
     (first.date || '9999-12-31').localeCompare(second.date || '9999-12-31', 'ja')
     || first.dateLabel.localeCompare(second.dateLabel, 'ja')

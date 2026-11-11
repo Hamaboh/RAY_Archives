@@ -22,12 +22,17 @@ function artistMarkup(artists) {
   return `<ul class="event-performers media-artists" aria-label="アーティスト名">${artists.map((artist) => `<li>${escapeHtml(artist)}</li>`).join('')}</ul>`;
 }
 
+function recordLinks(record) {
+  const links = record.links?.length ? record.links : [{ medium: record.medium, url: record.url }];
+  return links.map(({ medium, url }) => ({ medium: mediaLabel(medium), url: safeUrl(url) })).filter(({ url }) => url);
+}
+
 function recordMarkup(record) {
-  const medium = mediaLabel(record.medium);
+  const links = recordLinks(record);
+  const media = [...new Set(links.map(({ medium }) => medium))].join(' / ') || mediaLabel(record.medium);
   const dateTime = record.date || '';
-  const url = safeUrl(record.url);
-  const link = url ? `<a class="media-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">詳細はこちら <span aria-hidden="true">→</span></a>` : '';
-  return `<article class="media-card"><time datetime="${escapeHtml(dateTime)}">${escapeHtml(record.dateLabel || '日付未登録')}</time><div class="media-card-main"><p>${escapeHtml(medium)}</p><h3>${escapeHtml(record.title || 'タイトル未登録')}</h3></div>${link}${artistMarkup(record.artists || [])}</article>`;
+  const link = links.length ? `<div class="media-links">${links.map(({ medium, url }) => `<a class="media-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(medium)}の詳細はこちら">詳細はこちら <span aria-hidden="true">→</span></a>`).join('')}</div>` : '';
+  return `<article class="media-card"><time datetime="${escapeHtml(dateTime)}">${escapeHtml(record.dateLabel || '日付未登録')}</time><div class="media-card-main"><p>${escapeHtml(media)}</p><h3>${escapeHtml(record.title || 'タイトル未登録')}</h3></div>${link}${artistMarkup(record.artists || [])}</article>`;
 }
 
 function orderByDate(first, second) {
@@ -40,7 +45,7 @@ function render(records) {
   const selectedMedium = filter.value;
   const selectedArtist = artistFilter.value;
   const visible = records.filter((record) => (
-    (!selectedMedium || mediaLabel(record.medium) === selectedMedium)
+    (!selectedMedium || recordLinks(record).some(({ medium }) => medium === selectedMedium))
     && (!selectedArtist || record.artists.includes(selectedArtist))
   ));
   description.textContent = `${visible.length.toLocaleString('ja-JP')}件を発信日の昇順に表示しています。`;
@@ -58,8 +63,9 @@ try {
     medium: normalise(record.medium),
     dateLabel: normalise(record.dateLabel),
     artists: (record.artists ?? []).map(normalise).filter(Boolean),
+    links: (record.links ?? []).map((link) => ({ medium: normalise(link.medium), url: normalise(link.url) })),
   })).sort(orderByDate);
-  const mediums = [...new Set(records.map((record) => mediaLabel(record.medium)))].sort((first, second) => first.localeCompare(second, 'ja'));
+  const mediums = [...new Set(records.flatMap((record) => recordLinks(record).map(({ medium }) => medium)))].sort((first, second) => first.localeCompare(second, 'ja'));
   filter.innerHTML += mediums.map((medium) => `<option value="${escapeHtml(medium)}">${escapeHtml(medium)}</option>`).join('');
   artistFilter.innerHTML += artistOptions.map((artist) => `<option value="${escapeHtml(artist)}">${escapeHtml(artist)}</option>`).join('');
   title.textContent = 'すべてのメディア情報';
