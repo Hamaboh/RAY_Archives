@@ -13,6 +13,7 @@ const title = $('#media-results-title');
 const description = $('#media-results-description');
 const list = $('#media-list');
 const empty = $('#media-empty');
+const filter = $('#media-filter');
 
 function artistMarkup(artists) {
   if (!artists.length) return '';
@@ -23,8 +24,22 @@ function recordMarkup(record) {
   const medium = mediaLabel(record.medium);
   const dateTime = record.date || '';
   const url = safeUrl(record.url);
-  const link = url ? `<a class="media-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(medium)}はこちら <span aria-hidden="true">→</span></a>` : '';
+  const link = url ? `<a class="media-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">詳細はこちら <span aria-hidden="true">→</span></a>` : '';
   return `<article class="media-card"><time datetime="${escapeHtml(dateTime)}">${escapeHtml(record.dateLabel || '日付未登録')}</time><div class="media-card-main"><p>${escapeHtml(medium)}</p><h3>${escapeHtml(record.title || 'タイトル未登録')}</h3></div>${link}${artistMarkup(record.artists || [])}</article>`;
+}
+
+function orderByDate(first, second) {
+  return (first.date || '9999-12-31').localeCompare(second.date || '9999-12-31', 'ja')
+    || first.dateLabel.localeCompare(second.dateLabel, 'ja')
+    || first.title.localeCompare(second.title, 'ja');
+}
+
+function render(records) {
+  const selectedMedium = filter.value;
+  const visible = records.filter((record) => !selectedMedium || mediaLabel(record.medium) === selectedMedium);
+  description.textContent = `${visible.length.toLocaleString('ja-JP')}件を発信日の昇順に表示しています。`;
+  list.innerHTML = visible.map(recordMarkup).join('');
+  empty.hidden = visible.length !== 0;
 }
 
 try {
@@ -37,11 +52,12 @@ try {
     medium: normalise(record.medium),
     dateLabel: normalise(record.dateLabel),
     artists: (record.artists ?? []).map(normalise).filter(Boolean),
-  }));
+  })).sort(orderByDate);
+  const mediums = [...new Set(records.map((record) => mediaLabel(record.medium)))].sort((first, second) => first.localeCompare(second, 'ja'));
+  filter.innerHTML += mediums.map((medium) => `<option value="${escapeHtml(medium)}">${escapeHtml(medium)}</option>`).join('');
   title.textContent = 'すべてのメディア情報';
-  description.textContent = `${records.length.toLocaleString('ja-JP')}件を発信日順に表示しています。`;
-  list.innerHTML = records.map(recordMarkup).join('');
-  empty.hidden = records.length !== 0;
+  render(records);
+  filter.addEventListener('change', () => render(records));
 } catch (error) {
   console.error(error);
   title.textContent = 'メディア情報を読み込めませんでした。';

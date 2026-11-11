@@ -185,6 +185,10 @@ main { max-width:var(--max); margin:auto; }
 
 .media-results { min-height:680px; padding:32px clamp(18px,8vw,125px) 95px; background:var(--black); }
 .media-results .results-header { max-width:600px; }
+.media-controls { margin-top:20px; padding:15px 0; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.18); }
+.media-controls label { display:grid; width:min(320px,100%); gap:6px; color:var(--subtle); font:9px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.09em; }
+.media-controls select { width:100%; height:37px; padding:0 10px; border:1px solid var(--line); border-radius:3px; outline:0; background:#080808; color:var(--white); font:12px "Meiryo UI",Meiryo,sans-serif; letter-spacing:0; }
+.media-controls select:focus { border-color:var(--white); background:#161616; }
 #media-list { display:grid; gap:5px; margin-top:29px; }
 .media-card { display:grid; grid-template-columns:104px minmax(0,1fr) auto minmax(110px,.2fr); gap:12px; align-items:center; min-width:0; padding:10px 13px; border:0; border-radius:4px; background:rgba(255,255,255,.07); transition:background .16s ease,color .16s ease; }
 .media-card:hover { background:var(--white); color:var(--black); }
@@ -256,7 +260,7 @@ main { max-width:var(--max); margin:auto; }
 .statistics-chart-scroll { position:relative; overflow-x:auto; padding:12px 0 8px; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.2); scrollbar-color:rgba(255,255,255,.45) transparent; }
 .statistics-chart svg { display:block; }
 .statistics-grid line { stroke:rgba(255,255,255,.17); stroke-width:1; }
-.statistics-grid text,.statistics-date { fill:var(--subtle); font:9px "Meiryo UI",Meiryo,sans-serif; }
+.statistics-grid text,.statistics-date { fill:var(--subtle); font:8px "Meiryo UI",Meiryo,sans-serif; }
 .statistics-axis { stroke:rgba(255,255,255,.58); stroke-width:1; }
 .statistics-series { color:var(--series); transition:opacity .16s ease; }
 .statistics-series-line { fill:none; stroke:var(--series); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; pointer-events:none; }

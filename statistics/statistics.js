@@ -27,10 +27,14 @@ const correctedArtist = (entry) => (
     : entry.artist
 );
 
-function dateLabel(value) {
+function axisDateLabel(value, previousValue = '') {
   const [date, time = ''] = value.split('T');
   const [year, month, day] = date.split('-');
-  return `${year}/${Number(month)}/${Number(day)}${time ? ` ${time}` : ''}`;
+  const previousYear = previousValue.slice(0, 4);
+  const previousDate = previousValue.slice(0, 10);
+  const shortDate = `${Number(month)}/${Number(day)}`;
+  const yearLabel = year !== previousYear ? `${year}/` : '';
+  return `${yearLabel}${shortDate}${time && date === previousDate ? ` ${time}` : ''}`;
 }
 
 function aggregate(entries) {
@@ -135,10 +139,18 @@ function chartMarkup(model, entries, selectedArtists, selectedForm, selectedRegi
     const markers = plottedValues.filter((point) => point.performed).map((point) => `<circle cx="${x(point.index)}" cy="${y(point.value)}" r="2.4" />`).join('');
     return `<g class="statistics-series" data-song="${escapeHtml(song)}" data-counts="${plottedValues.map((point) => point.value).join(',')}" data-indices="${plottedValues.map((point) => point.index).join(',')}" style="--series:${color}"><polyline class="statistics-series-hit" points="${points}" /><polyline class="statistics-series-line" points="${points}" />${markers}</g>`;
   }).join('');
-  const labelPitch = 76;
+  // 日付を短縮表示し、従来より約3.5倍多くのラベルを置く。
+  // 年が変わる地点だけ年を補うため、時系列上の位置と年度の切り替わりを両立できる。
+  const labelPitch = 22;
   const maximumLabelCount = Math.max(2, Math.floor((width - left - 24) / labelPitch) + 1);
   const labelStep = eventDates.length <= 1 ? 1 : Math.max(1, Math.ceil((eventDates.length - 1) / (maximumLabelCount - 1)));
-  const labels = eventDates.map((date, index) => (index % labelStep === 0 || index === eventDates.length - 1 ? `<text class="statistics-date" x="${x(index)}" y="${height - bottom + 21}" text-anchor="end" transform="rotate(-48 ${x(index)} ${height - bottom + 21})">${dateLabel(date)}</text>` : '')).join('');
+  let previousLabelDate = '';
+  const labels = eventDates.map((date, index) => {
+    if (index % labelStep !== 0 && index !== eventDates.length - 1) return '';
+    const label = axisDateLabel(date, previousLabelDate);
+    previousLabelDate = date;
+    return `<text class="statistics-date" x="${x(index)}" y="${height - bottom + 21}" text-anchor="end" transform="rotate(-48 ${x(index)} ${height - bottom + 21})">${label}</text>`;
+  }).join('');
   return `<div class="statistics-note">${eventDates.length.toLocaleString('ja-JP')}件のイベント・${songs.length.toLocaleString('ja-JP')}曲を表示。各楽曲は原点から開始し、披露前はx軸上を進みます。点は披露したイベント、線は累計回数です。</div><div class="statistics-chart-scroll" tabindex="0" aria-label="セットリスト統計グラフ。横方向にスクロールできます。"><svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" data-event-count="${eventDates.length}" data-graph-left="${left}" data-graph-right="24" role="img" aria-label="楽曲別の累計披露回数"><g class="statistics-grid">${grid}</g><line class="statistics-axis" x1="${left}" x2="${width - 24}" y1="${height - bottom}" y2="${height - bottom}" />${lines}<g>${labels}</g></svg><div class="statistics-tooltip" role="status" hidden></div></div>${filterMarkup(selectedArtists, selectedForm, selectedRegime, selectedYears, forms, years)}${tableMarkup(entries)}`;
 }
 

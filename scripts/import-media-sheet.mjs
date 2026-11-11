@@ -86,8 +86,8 @@ async function importRows(tsv) {
       fields,
     }));
   }).sort((first, second) => (
-    (second.date || '').localeCompare(first.date || '', 'ja')
-    || second.dateLabel.localeCompare(first.dateLabel, 'ja')
+    (first.date || '9999-12-31').localeCompare(second.date || '9999-12-31', 'ja')
+    || first.dateLabel.localeCompare(second.dateLabel, 'ja')
     || first.title.localeCompare(second.title, 'ja')
   ));
 
