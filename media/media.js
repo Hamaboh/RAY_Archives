@@ -31,7 +31,7 @@ function recordMarkup(record) {
   const links = recordLinks(record);
   const media = [...new Set(links.map(({ medium }) => medium))].join(' / ') || mediaLabel(record.medium);
   const dateTime = record.date || '';
-  const link = links.length ? `<div class="media-links">${links.map(({ medium, url }) => `<a class="media-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(medium)}の詳細はこちら">詳細はこちら <span aria-hidden="true">→</span></a>`).join('')}</div>` : '';
+  const link = links.length ? `<div class="media-links">${links.map(({ medium, url }) => `<a class="media-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(medium)} <span aria-hidden="true">→</span></a>`).join('')}</div>` : '';
   return `<article class="media-card"><time datetime="${escapeHtml(dateTime)}">${escapeHtml(record.dateLabel || '日付未登録')}</time><div class="media-card-main"><p>${escapeHtml(media)}</p><h3>${escapeHtml(record.title || 'タイトル未登録')}</h3></div>${link}${artistMarkup(record.artists || [])}</article>`;
 }
 
