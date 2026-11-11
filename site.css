@@ -185,8 +185,8 @@ main { max-width:var(--max); margin:auto; }
 
 .media-results { min-height:680px; padding:32px clamp(18px,8vw,125px) 95px; background:var(--black); }
 .media-results .results-header { max-width:600px; }
-.media-controls { display:grid; grid-template-columns:repeat(2,minmax(0,320px)); gap:12px; margin-top:20px; padding:15px 0; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.18); }
-.media-controls label { display:grid; width:min(320px,100%); gap:6px; color:var(--subtle); font:9px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.09em; }
+.media-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:min(660px,100%); gap:12px; margin-top:20px; padding:15px 0; border-top:1px solid rgba(255,255,255,.32); border-bottom:1px solid rgba(255,255,255,.18); }
+.media-controls label { display:grid; width:100%; gap:6px; color:var(--subtle); font:9px/1 "Meiryo UI",Meiryo,sans-serif; letter-spacing:.09em; }
 .media-controls select { width:100%; height:37px; padding:0 10px; border:1px solid var(--line); border-radius:3px; outline:0; background:#080808; color:var(--white); font:12px "Meiryo UI",Meiryo,sans-serif; letter-spacing:0; }
 .media-controls select:focus { border-color:var(--white); background:#161616; }
 #media-list { display:grid; gap:5px; margin-top:29px; }
@@ -336,7 +336,6 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .song-search-scope { grid-column:1 / -1; }
   .song-results { min-height:0; padding:28px 18px 70px; }
   .media-results { min-height:0; padding:28px 18px 70px; }
-  .media-controls { grid-template-columns:1fr; gap:10px; }
   .statistics-results { min-height:0; padding:28px 18px 70px; }
   .song-card-main { grid-template-columns:1fr; align-items:start; gap:9px; }
   .song-card h3 { order:1; }
@@ -357,6 +356,10 @@ footer a { color:var(--white); text-decoration:underline; text-underline-offset:
   .media-artists { order:2; justify-content:flex-start; }
   footer { display:block; }
   footer>* { display:block; margin:7px 0!important; }
+}
+
+@media (max-width:560px) {
+  .media-controls { grid-template-columns:1fr; gap:10px; }
 }
 
 @media (max-width:540px) {

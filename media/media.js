@@ -2,6 +2,7 @@ const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[character]);
 const normalise = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 const mediaLabel = (value) => normalise(value).split(/\s+-\s+/)[0] || 'リンク';
+const artistOptions = ['RAY', '内山結愛', '甲斐莉乃', '白川さやか', '月日', '琴山しずく', '愛海', '月海まお', '紬実詩', '春音友希', '大黒メロンちゃん', 'ねりね', 'ﾐﾔﾊﾗｸﾝ', '江頭', 'のうまらいず', '小林輝哉', '古村雪'];
 function safeUrl(value) {
   try {
     const url = new URL(normalise(value));
@@ -59,9 +60,8 @@ try {
     artists: (record.artists ?? []).map(normalise).filter(Boolean),
   })).sort(orderByDate);
   const mediums = [...new Set(records.map((record) => mediaLabel(record.medium)))].sort((first, second) => first.localeCompare(second, 'ja'));
-  const artists = [...new Set(records.flatMap((record) => record.artists))].sort((first, second) => first.localeCompare(second, 'ja'));
   filter.innerHTML += mediums.map((medium) => `<option value="${escapeHtml(medium)}">${escapeHtml(medium)}</option>`).join('');
-  artistFilter.innerHTML += artists.map((artist) => `<option value="${escapeHtml(artist)}">${escapeHtml(artist)}</option>`).join('');
+  artistFilter.innerHTML += artistOptions.map((artist) => `<option value="${escapeHtml(artist)}">${escapeHtml(artist)}</option>`).join('');
   title.textContent = 'すべてのメディア情報';
   render(records);
   filter.addEventListener('change', () => render(records));
